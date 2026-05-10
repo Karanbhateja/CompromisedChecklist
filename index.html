@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VAPT // ASSESSMENT PLATFORM</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,400&family=Share+Tech+Mono&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#07090e;
@@ -81,8 +82,8 @@ body{
   flex-shrink:0;
 }
 #logo-text{display:flex;flex-direction:column}
-#logo-name{font-size:14px;font-weight:700;letter-spacing:.06em;color:#fff;text-transform:uppercase}
-#logo-sub{font-size:9px;letter-spacing:.15em;color:var(--accent);font-family:var(--mono);text-transform:uppercase}
+#logo-name{font:700 14px/1 'Chakra Petch',sans-serif;letter-spacing:.08em;color:#fff;text-transform:uppercase}
+#logo-sub{font:9px/1 'Share Tech Mono',var(--mono);letter-spacing:.15em;color:var(--accent);text-transform:uppercase}
 #header-right{display:flex;align-items:center;gap:12px}
 #sync-pill{
   display:flex;align-items:center;gap:6px;
@@ -122,52 +123,91 @@ body{
 .btn-sm{padding:4px 10px;font-size:11px}
 
 /* ─── VIEW: ORG LIST ─── */
-#view-list{max-width:1100px;margin:0 auto;padding:32px 24px}
-.vl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
-.vl-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:var(--mono)}
-.vl-title strong{font-size:22px;font-weight:700;color:var(--text);letter-spacing:.02em;display:block;margin-top:4px;font-family:inherit;text-transform:none}
-.org-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+#view-list{display:flex;flex-direction:column;height:calc(100vh - 82px);max-width:none;padding:0}
+.vl-topbar{
+  padding:18px 28px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  background:linear-gradient(180deg,var(--s1) 0%,rgba(12,16,24,.5) 100%);
+}
+.vl-eyebrow{font:9px/1 'Share Tech Mono',var(--mono);letter-spacing:.14em;color:var(--accent);text-transform:uppercase;margin-bottom:7px}
+.vl-heading{font:700 20px/1 'Chakra Petch',sans-serif;letter-spacing:.04em;color:var(--text)}
+.vl-body{display:flex;flex:1;overflow:hidden}
 
-/* ORG CARD */
-.org-card{
-  background:var(--s1);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  overflow:hidden;
-  cursor:pointer;
-  transition:all .2s;
-  position:relative;
+/* LEFT — engagement list */
+.vl-left{flex:1;overflow-y:auto;border-right:1px solid var(--border);min-width:0}
+.eng-list-head{
+  display:grid;grid-template-columns:1fr 190px 72px 108px 84px;
+  padding:8px 22px;border-bottom:1px solid var(--border);
+  font:9px/1 'Share Tech Mono',var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
+  position:sticky;top:0;z-index:10;background:rgba(7,9,14,.96);backdrop-filter:blur(4px);
 }
-.org-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
-  background:var(--accent);opacity:0;transition:opacity .2s;
+@keyframes rowIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.eng-row{
+  display:grid;grid-template-columns:1fr 190px 72px 108px 84px;
+  align-items:center;padding:0 22px;height:66px;
+  border-bottom:1px solid rgba(30,45,61,.5);border-left:2px solid transparent;
+  cursor:pointer;transition:background .12s,border-color .12s;animation:rowIn .26s both;
 }
-.org-card:hover{border-color:var(--border-hi);background:var(--s2);box-shadow:0 0 20px var(--accent-glow2)}
-.org-card:hover::before{opacity:1}
-.org-card-body{padding:18px 18px 12px}
-.org-card-id{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
-.org-card-name{font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px;letter-spacing:.01em}
-.org-card-client{font-size:12px;color:var(--dim);margin-bottom:14px}
-.org-card-prog-label{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--muted);margin-bottom:5px}
-.org-card-bar{height:3px;background:var(--s3);border-radius:1px;margin-bottom:14px;overflow:hidden}
-.org-card-bar-fill{height:100%;background:var(--accent);border-radius:1px;transition:width .4s}
-.org-card-bar-fill.done{background:var(--green)}
-.org-card-meta{font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:.04em}
-.org-card-foot{
-  padding:10px 18px;
-  border-top:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  background:rgba(0,0,0,.15);
-}
-.empty-state{
-  grid-column:1/-1;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:80px 20px;gap:12px;text-align:center;
-  border:1px dashed var(--border);border-radius:var(--radius);
-  color:var(--muted);
-}
-.empty-icon{font-size:40px;opacity:.4}
-.empty-state p{font-size:13px;max-width:300px;line-height:1.6}
+.eng-row:hover{background:rgba(59,130,246,.05);border-left-color:var(--accent)}
+.eng-row:hover .eng-name{color:var(--accent-bright)}
+.eng-row:hover .eng-actions{opacity:1}
+.eng-id-tag{font:9px/1 'Share Tech Mono',var(--mono);color:var(--accent);letter-spacing:.07em;opacity:.6;margin-bottom:4px}
+.eng-name{font:600 13px/1.3 'Chakra Petch',sans-serif;color:var(--text);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .12s;margin-bottom:2px}
+.eng-client{font:11px/1 'Share Tech Mono',var(--mono);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eng-prog-wrap{display:flex;flex-direction:column;gap:5px}
+.eng-bar-track{height:3px;background:var(--s3);border-radius:1px;overflow:hidden}
+.eng-bar-fill{height:100%;border-radius:1px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.eng-bar-labels{display:flex;justify-content:space-between;font:9px/1 'Share Tech Mono',var(--mono);color:var(--muted)}
+.eng-pct{font:700 20px/1 'Chakra Petch',sans-serif;letter-spacing:.02em}
+.eng-date{font:10px/1.4 'Share Tech Mono',var(--mono);color:var(--muted);letter-spacing:.04em}
+.eng-actions{display:flex;gap:5px;justify-content:flex-end;opacity:0;transition:opacity .15s}
+.vl-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;color:var(--muted);padding:80px 20px;min-height:300px}
+.vl-empty-icon{font-size:36px;opacity:.2;filter:grayscale(1)}
+
+/* RIGHT — stats panel */
+.vl-right{width:300px;min-width:300px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.sc{background:var(--s1);border:1px solid var(--border);border-radius:2px;padding:14px 15px}
+.sc-label{font:9px/1 'Share Tech Mono',var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.sc-label::before{content:'';display:inline-block;width:10px;height:1px;background:var(--accent);flex-shrink:0}
+
+/* DONUT CHART */
+.donut-outer{position:relative;width:120px;height:120px;margin:0 auto 12px}
+.donut-svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut-track{fill:none;stroke:var(--s3);stroke-width:9}
+.donut-arc{fill:none;stroke-width:9;stroke-linecap:round;transition:stroke-dasharray 1.1s cubic-bezier(.4,0,.2,1),stroke .4s}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.donut-val{font:700 24px/1 'Chakra Petch',sans-serif;color:var(--text);letter-spacing:.02em}
+.donut-sub{font:8px/1 'Share Tech Mono',var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.donut-legend{display:flex;justify-content:center;gap:12px;margin-top:8px;flex-wrap:wrap}
+.dl-item{display:flex;align-items:center;gap:4px;font:9px/1 'Share Tech Mono',var(--mono);color:var(--muted)}
+.dl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* METRIC CHIPS */
+.metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.metric-chip{background:var(--s2);border:1px solid var(--border);border-radius:2px;padding:9px 11px;position:relative;overflow:hidden}
+.metric-chip::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--accent);opacity:.35}
+.metric-val{font:700 22px/1 'Chakra Petch',sans-serif;color:var(--text);letter-spacing:.02em;margin-bottom:4px}
+.metric-lbl{font:8px/1 'Share Tech Mono',var(--mono);color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.metric-chip.hi-green .metric-val{color:var(--green)}
+.metric-chip.hi-green::after{background:var(--green)}
+.metric-chip.hi-yellow .metric-val{color:var(--yellow)}
+.metric-chip.hi-yellow::after{background:var(--yellow)}
+
+/* SECTION BARS */
+.sec-row{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.sec-row:last-child{margin-bottom:0}
+.sec-ico{font-size:11px;width:14px;text-align:center;flex-shrink:0}
+.sec-lbl{font:9px/1 'Share Tech Mono',var(--mono);color:var(--dim);width:68px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em}
+.sec-track{flex:1;height:4px;background:var(--s3);border-radius:1px;overflow:hidden}
+.sec-fill{height:100%;border-radius:1px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+.sec-n{font:9px/1 'Share Tech Mono',var(--mono);color:var(--muted);min-width:18px;text-align:right}
+
+/* STATUS DISTRIBUTION BAR */
+.dist-track{height:7px;background:var(--s3);border-radius:2px;overflow:hidden;display:flex;margin-bottom:8px}
+.dist-seg{height:100%;transition:flex .6s cubic-bezier(.4,0,.2,1)}
+.dist-legend{display:flex;gap:10px;flex-wrap:wrap}
+.dist-leg{display:flex;align-items:center;gap:4px;font:9px/1 'Share Tech Mono',var(--mono);color:var(--muted)}
+.dist-dot{width:7px;height:7px;border-radius:1px;flex-shrink:0}
 
 /* ─── VIEW: ASSESSMENT ─── */
 #view-assessment{display:none;height:calc(100vh - 53px - 29px);flex-direction:row}
@@ -416,17 +456,56 @@ body{
 
 <!-- ═══════════════════════════════ ORG LIST VIEW ═══ -->
 <div id="view-list">
-  <div class="vl-header">
-    <div class="vl-title">
-      <span>Active Engagements</span>
-      <strong id="org-count-label">Loading...</strong>
+  <div class="vl-topbar">
+    <div>
+      <div class="vl-eyebrow">Assessment Operations // VAPT Platform</div>
+      <h2 class="vl-heading" id="org-count-label">Initializing...</h2>
     </div>
     <button class="btn btn-primary" onclick="openCreateOrg()">+ New Target</button>
   </div>
-  <div class="org-grid" id="org-grid">
-    <div class="empty-state" id="org-loading">
-      <div class="empty-icon">⟳</div>
-      <p>Connecting to server...</p>
+  <div class="vl-body">
+    <!-- LEFT: Engagement list -->
+    <div class="vl-left">
+      <div class="eng-list-head">
+        <span>Target</span>
+        <span>Progress</span>
+        <span>Done</span>
+        <span>Initiated</span>
+        <span style="text-align:right">Actions</span>
+      </div>
+      <div id="org-grid"></div>
+    </div>
+    <!-- RIGHT: Stats panel -->
+    <div class="vl-right" id="stats-panel">
+      <div class="sc">
+        <div class="sc-label">Overall Completion</div>
+        <div class="donut-outer">
+          <svg class="donut-svg" viewBox="0 0 120 120">
+            <circle class="donut-track" cx="60" cy="60" r="48"/>
+            <circle class="donut-arc" id="donut-arc" cx="60" cy="60" r="48" stroke="var(--accent)" stroke-dasharray="0 301.6"/>
+          </svg>
+          <div class="donut-center">
+            <div class="donut-val" id="donut-val">—</div>
+            <div class="donut-sub">Checked</div>
+          </div>
+        </div>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+      <div class="sc">
+        <div class="sc-label">Metrics</div>
+        <div class="metrics-row" id="metrics-row"></div>
+      </div>
+      <div class="sc">
+        <div class="sc-label">Status Distribution</div>
+        <div class="dist-track" id="dist-track">
+          <div class="dist-seg" style="background:var(--muted);flex:1"></div>
+        </div>
+        <div class="dist-legend" id="dist-legend"></div>
+      </div>
+      <div class="sc">
+        <div class="sc-label">Section Scope</div>
+        <div id="sec-bars"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1165,7 +1244,8 @@ async function loadOrgList(){
     const orgs=await res.json();
     renderOrgList(orgs);
   }catch(e){
-    document.getElementById('org-grid').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠</div><p>Cannot reach server.<br>Is it running on port 7331?</p></div>`;
+    document.getElementById('org-grid').innerHTML=`<div class="vl-empty"><div class="vl-empty-icon">⚠</div><div style="font:700 13px/1 'Chakra Petch',sans-serif;color:var(--red)">SERVER UNREACHABLE</div><p style="font-size:12px;line-height:1.7">Cannot connect to port 7331.<br>Is the Docker container running?</p></div>`;
+    updateCharts([]);
     setSyncUI('err','Unreachable');
   }
 }
@@ -1173,37 +1253,114 @@ async function loadOrgList(){
 function renderOrgList(orgs){
   const label=document.getElementById('org-count-label');
   label.textContent=orgs.length
-    ? orgs.length+' engagement'+(orgs.length!==1?'s':'')+' on record'
-    : 'No active engagements';
+    ? orgs.length+' Engagement'+(orgs.length!==1?'s':'')+' on Record'
+    : 'No Active Engagements';
+
   const grid=document.getElementById('org-grid');
   if(!orgs.length){
-    grid.innerHTML=`<div class="empty-state">
-      <div class="empty-icon">🎯</div>
-      <p>No engagements found. Create your first target to begin the assessment.</p>
+    grid.innerHTML=`<div class="vl-empty">
+      <div class="vl-empty-icon">🎯</div>
+      <div style="font:700 13px/1 'Chakra Petch',sans-serif;letter-spacing:.05em;color:var(--dim)">NO TARGETS ACQUIRED</div>
+      <p style="font-size:12px;max-width:240px;line-height:1.7">Create your first engagement to begin tracking the assessment process.</p>
+      <button class="btn btn-primary" onclick="openCreateOrg()">+ New Target</button>
     </div>`;
+    updateCharts([]);
     return;
   }
-  grid.innerHTML=orgs.map(org=>{
+
+  grid.innerHTML=orgs.map((org,i)=>{
     const checked=org.checkedCount||0;
     const pct=Math.round(checked/TOTAL_ITEMS*100);
-    const date=new Date(org.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-    const tagClass=pct===0?'tag-muted':pct===100?'tag-green':'tag-blue';
-    const tagLabel=pct===0?'NOT STARTED':pct===100?'COMPLETE':'IN PROGRESS';
-    return `<div class="org-card" onclick="openOrg('${org.id}')">
-      <div class="org-card-body">
-        <div class="org-card-id">ENG-${org.id.toUpperCase().slice(0,8)} &nbsp;<span class="tag ${tagClass}">${tagLabel}</span></div>
-        <div class="org-card-name">${esc(org.name)}</div>
-        <div class="org-card-client">${esc(org.client||'—')}</div>
-        <div class="org-card-prog-label"><span>PROGRESS</span><span>${checked} / ${TOTAL_ITEMS} items (${pct}%)</span></div>
-        <div class="org-card-bar"><div class="org-card-bar-fill${pct===100?' done':''}" style="width:${pct}%"></div></div>
-        <div class="org-card-meta">Created ${date}</div>
+    const date=new Date(org.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+    const barColor=pct===100?'var(--green)':pct>60?'var(--accent)':pct>25?'var(--yellow)':'var(--red)';
+    const pctColor=pct===100?'var(--green)':pct>60?'var(--accent-bright)':pct>25?'var(--yellow)':'var(--red)';
+    const statusLabel=pct===0?'PENDING':pct===100?'CLOSED':'ACTIVE';
+    const statusColor=pct===0?'var(--muted)':pct===100?'var(--green)':'var(--accent)';
+    return `<div class="eng-row" onclick="openOrg('${org.id}')" style="animation-delay:${i*.05}s">
+      <div>
+        <div class="eng-id-tag">ENG-${org.id.toUpperCase().slice(0,8)}</div>
+        <div class="eng-name">${esc(org.name)}</div>
+        <div class="eng-client">${esc(org.client||'—')}</div>
       </div>
-      <div class="org-card-foot" onclick="event.stopPropagation()">
-        <button class="btn btn-sm" onclick="openOrg('${org.id}')">Open Assessment →</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteOrg('${org.id}','${esc(org.name)}')">Delete</button>
+      <div class="eng-prog-wrap">
+        <div class="eng-bar-track"><div class="eng-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+        <div class="eng-bar-labels"><span>${checked}/${TOTAL_ITEMS} items</span><span style="color:${statusColor}">${statusLabel}</span></div>
+      </div>
+      <div class="eng-pct" style="color:${pctColor}">${pct}%</div>
+      <div class="eng-date">${date}</div>
+      <div class="eng-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" onclick="openOrg('${org.id}')">Open</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteOrg('${org.id}','${esc(org.name)}')">✕</button>
       </div>
     </div>`;
   }).join('');
+
+  updateCharts(orgs);
+}
+
+function updateCharts(orgs){
+  const circ=2*Math.PI*48; // r=48 → ≈301.6
+
+  // ── DONUT ──
+  const totalPossible=TOTAL_ITEMS*(orgs.length||1);
+  const totalChecked=orgs.reduce((a,o)=>a+(o.checkedCount||0),0);
+  const pct=orgs.length?Math.round(totalChecked/totalPossible*100):0;
+  const arc=document.getElementById('donut-arc');
+  if(arc){
+    const fill=(pct/100)*circ;
+    arc.setAttribute('stroke-dasharray',`${fill} ${circ}`);
+    arc.setAttribute('stroke',pct===100?'var(--green)':pct>60?'var(--accent)':pct>25?'var(--yellow)':'var(--red)');
+  }
+  const dv=document.getElementById('donut-val');
+  if(dv) dv.textContent=orgs.length?pct+'%':'—';
+
+  const dl=document.getElementById('donut-legend');
+  if(dl) dl.innerHTML=[
+    {color:'var(--green)',label:'Complete'},
+    {color:'var(--accent)',label:'In Progress'},
+    {color:'var(--muted)',label:'Pending'},
+  ].map(d=>`<div class="dl-item"><div class="dl-dot" style="background:${d.color}"></div>${d.label}</div>`).join('');
+
+  // ── METRICS ──
+  const complete=orgs.filter(o=>Math.round((o.checkedCount||0)/TOTAL_ITEMS*100)===100).length;
+  const inProg=orgs.filter(o=>(o.checkedCount||0)>0&&Math.round((o.checkedCount||0)/TOTAL_ITEMS*100)<100).length;
+  const mr=document.getElementById('metrics-row');
+  if(mr) mr.innerHTML=[
+    {val:orgs.length,lbl:'Engagements',cls:''},
+    {val:totalChecked,lbl:'Items Checked',cls:''},
+    {val:complete,lbl:'Complete',cls:'hi-green'},
+    {val:inProg,lbl:'In Progress',cls:'hi-yellow'},
+  ].map(m=>`<div class="metric-chip ${m.cls}"><div class="metric-val">${m.val}</div><div class="metric-lbl">${m.lbl}</div></div>`).join('');
+
+  // ── STATUS DISTRIBUTION BAR ──
+  const notStarted=orgs.filter(o=>!(o.checkedCount||0)).length;
+  const total=orgs.length||1;
+  const dt=document.getElementById('dist-track');
+  if(dt) dt.innerHTML=[
+    {flex:complete/total,color:'var(--green)'},
+    {flex:inProg/total,color:'var(--accent)'},
+    {flex:notStarted/total,color:'var(--s3)'},
+  ].map(s=>`<div class="dist-seg" style="flex:${s.flex||0};background:${s.color}"></div>`).join('');
+  const dleg=document.getElementById('dist-legend');
+  if(dleg) dleg.innerHTML=[
+    {color:'var(--green)',label:`${complete} Complete`},
+    {color:'var(--accent)',label:`${inProg} Active`},
+    {color:'var(--muted)',label:`${notStarted} Pending`},
+  ].map(d=>`<div class="dist-leg"><div class="dist-dot" style="background:${d.color}"></div>${d.label}</div>`).join('');
+
+  // ── SECTION SCOPE BARS ──
+  const counts=SECTIONS.map(s=>({
+    id:s.id,icon:s.icon,title:s.title,color:s.color,
+    n:s.groups.reduce((a,g)=>a+g.items.length,0)
+  }));
+  const maxN=Math.max(...counts.map(s=>s.n));
+  const sb=document.getElementById('sec-bars');
+  if(sb) sb.innerHTML=counts.map(s=>`<div class="sec-row">
+    <span class="sec-ico">${s.icon}</span>
+    <span class="sec-lbl">${s.title.toUpperCase()}</span>
+    <div class="sec-track"><div class="sec-fill" style="width:${Math.round(s.n/maxN*100)}%;background:${s.color}"></div></div>
+    <span class="sec-n">${s.n}</span>
+  </div>`).join('');
 }
 
 function openCreateOrg(){
