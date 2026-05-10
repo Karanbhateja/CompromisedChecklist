@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAPT // ASSESSMENT PLATFORM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090e;
+  --s1:#0c1018;
+  --s2:#111827;
+  --s3:#1a2234;
+  --border:#1e2d3d;
+  --border-hi:#2563eb;
+  --accent:#3b82f6;
+  --accent-bright:#60a5fa;
+  --accent-glow:rgba(59,130,246,.12);
+  --accent-glow2:rgba(59,130,246,.06);
+  --text:#e2e8f0;
+  --dim:#94a3b8;
+  --muted:#475569;
+  --green:#10b981;
+  --green-dim:rgba(16,185,129,.12);
+  --red:#ef4444;
+  --red-dim:rgba(239,68,68,.12);
+  --yellow:#eab308;
+  --yellow-dim:rgba(234,179,8,.1);
+  --orange:#f97316;
+  --purple:#a78bfa;
+  --radius:3px;
+  --mono:'SFMono-Regular',Consolas,'Courier New',monospace;
+}
+
+/* GRID BACKGROUND */
+body{
+  background:var(--bg);
+  background-image:
+    linear-gradient(rgba(59,130,246,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,.025) 1px,transparent 1px);
+  background-size:40px 40px;
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:13px;
+  min-height:100vh;
+}
+
+/* CLASSIFICATION BAR */
+#classbar{
+  background:linear-gradient(90deg,#0f1620,#0a1428,#0f1620);
+  border-bottom:1px solid var(--accent);
+  padding:4px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:.12em;
+  color:var(--accent-bright);
+  text-transform:uppercase;
+}
+#classbar span{color:var(--muted)}
+
+/* HEADER */
+#header{
+  background:var(--s1);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  height:52px;
+  position:sticky;top:0;z-index:200;
+}
+#logo{display:flex;align-items:center;gap:12px;cursor:pointer}
+#logo-mark{
+  width:28px;height:28px;
+  background:var(--accent);
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+#logo-text{display:flex;flex-direction:column}
+#logo-name{font-size:14px;font-weight:700;letter-spacing:.06em;color:#fff;text-transform:uppercase}
+#logo-sub{font-size:9px;letter-spacing:.15em;color:var(--accent);font-family:var(--mono);text-transform:uppercase}
+#header-right{display:flex;align-items:center;gap:12px}
+#sync-pill{
+  display:flex;align-items:center;gap:6px;
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:20px;padding:4px 10px;font-size:10px;
+  font-family:var(--mono);letter-spacing:.05em;color:var(--muted);
+}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.sdot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+.sdot.err{background:var(--red)}
+.sdot.busy{background:var(--accent);animation:sdpulse .8s infinite}
+@keyframes sdpulse{0%,100%{opacity:1}50%{opacity:.2}}
+#current-org-tag{
+  font-size:10px;font-family:var(--mono);letter-spacing:.08em;
+  color:var(--dim);text-transform:uppercase;display:none;
+}
+
+/* BUTTONS */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--radius);
+  border:1px solid var(--border);background:var(--s2);
+  color:var(--text);cursor:pointer;font-size:12px;
+  letter-spacing:.03em;transition:all .15s;white-space:nowrap;
+  font-family:inherit;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.btn-primary{
+  background:var(--accent);border-color:var(--accent);
+  color:#fff;font-weight:600;
+}
+.btn-primary:hover{background:#2563eb;border-color:#2563eb;color:#fff}
+.btn-danger{color:var(--red);border-color:rgba(239,68,68,.3);background:var(--red-dim)}
+.btn-danger:hover{border-color:var(--red);background:rgba(239,68,68,.2);color:var(--red)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--dim)}
+.btn-ghost:hover{color:var(--text);background:var(--s2);border-color:var(--border)}
+.btn-sm{padding:4px 10px;font-size:11px}
+
+/* ─── VIEW: ORG LIST ─── */
+#view-list{max-width:1100px;margin:0 auto;padding:32px 24px}
+.vl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.vl-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:var(--mono)}
+.vl-title strong{font-size:22px;font-weight:700;color:var(--text);letter-spacing:.02em;display:block;margin-top:4px;font-family:inherit;text-transform:none}
+.org-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+
+/* ORG CARD */
+.org-card{
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  cursor:pointer;
+  transition:all .2s;
+  position:relative;
+}
+.org-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--accent);opacity:0;transition:opacity .2s;
+}
+.org-card:hover{border-color:var(--border-hi);background:var(--s2);box-shadow:0 0 20px var(--accent-glow2)}
+.org-card:hover::before{opacity:1}
+.org-card-body{padding:18px 18px 12px}
+.org-card-id{font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.org-card-name{font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px;letter-spacing:.01em}
+.org-card-client{font-size:12px;color:var(--dim);margin-bottom:14px}
+.org-card-prog-label{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--muted);margin-bottom:5px}
+.org-card-bar{height:3px;background:var(--s3);border-radius:1px;margin-bottom:14px;overflow:hidden}
+.org-card-bar-fill{height:100%;background:var(--accent);border-radius:1px;transition:width .4s}
+.org-card-bar-fill.done{background:var(--green)}
+.org-card-meta{font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:.04em}
+.org-card-foot{
+  padding:10px 18px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,0,0,.15);
+}
+.empty-state{
+  grid-column:1/-1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:80px 20px;gap:12px;text-align:center;
+  border:1px dashed var(--border);border-radius:var(--radius);
+  color:var(--muted);
+}
+.empty-icon{font-size:40px;opacity:.4}
+.empty-state p{font-size:13px;max-width:300px;line-height:1.6}
+
+/* ─── VIEW: ASSESSMENT ─── */
+#view-assessment{display:none;height:calc(100vh - 53px - 29px);flex-direction:row}
+#va-sidebar{
+  width:230px;min-width:230px;
+  background:var(--s1);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+  position:sticky;top:82px;
+  height:calc(100vh - 82px);
+}
+#va-main{flex:1;overflow-y:auto;padding:24px;max-width:960px}
+
+/* SIDEBAR */
+.sb-section{padding:12px 0}
+.sb-section-label{
+  padding:6px 14px;font-size:9px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);font-family:var(--mono);
+}
+.sb-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 14px;cursor:pointer;
+  border-left:2px solid transparent;
+  transition:all .12s;font-size:12px;color:var(--dim);gap:6px;
+}
+.sb-item:hover{background:var(--s2);color:var(--text);border-left-color:var(--muted)}
+.sb-item.active{
+  color:var(--accent-bright);
+  border-left-color:var(--accent);
+  background:var(--accent-glow);
+}
+.sb-item-icon{font-size:13px;flex-shrink:0}
+.sb-badge{
+  font-size:9px;font-family:var(--mono);
+  background:var(--s3);color:var(--muted);
+  padding:2px 6px;border-radius:2px;min-width:38px;text-align:center;
+  flex-shrink:0;
+}
+.sb-item.active .sb-badge{background:var(--accent-glow);color:var(--accent-bright)}
+.sb-divider{height:1px;background:var(--border);margin:4px 0}
+
+/* SIDEBAR OVERALL PROGRESS */
+#sb-overall{
+  padding:12px 14px;border-top:1px solid var(--border);
+  margin-top:auto;
+}
+.sb-overall-label{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:.05em;margin-bottom:5px}
+.prog-bar{height:4px;background:var(--s3);border-radius:1px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:1px;transition:width .3s}
+.prog-fill.complete{background:var(--green)}
+#sb-count{font-size:9px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+
+#sb-actions{padding:10px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
+
+/* SECTION */
+.sec-header{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.sec-header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.sec-title{font-size:18px;font-weight:700;letter-spacing:.02em;display:flex;align-items:center;gap:10px}
+.sec-desc{font-size:12px;color:var(--dim);line-height:1.6;max-width:600px;margin-bottom:10px}
+.sec-prog-row{display:flex;align-items:center;gap:10px}
+.sec-prog-bar{flex:1;height:5px;background:var(--s3);border-radius:1px;overflow:hidden}
+.sec-prog-fill{height:100%;background:var(--accent);border-radius:1px;transition:width .3s}
+.sec-prog-fill.done{background:var(--green)}
+.sec-pct{font-size:10px;font-family:var(--mono);color:var(--muted);min-width:32px;text-align:right}
+.sec-count{font-size:10px;font-family:var(--mono);color:var(--muted);min-width:48px}
+
+/* SUBSECTION */
+.subsec{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--radius);margin-bottom:10px;overflow:hidden;
+}
+.subsec-head{
+  padding:11px 14px;display:flex;align-items:center;
+  justify-content:space-between;cursor:pointer;user-select:none;
+  transition:background .12s;
+}
+.subsec-head:hover{background:var(--s2)}
+.subsec-title{font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;letter-spacing:.02em}
+.subsec-icon{font-size:14px}
+.subsec-right{display:flex;align-items:center;gap:8px}
+.subsec-stats{font-size:10px;font-family:var(--mono);color:var(--muted)}
+.chevron{color:var(--muted);font-size:10px;transition:transform .2s;display:inline-block}
+.subsec.collapsed .chevron{transform:rotate(-90deg)}
+.subsec-body{border-top:1px solid var(--border)}
+.subsec.collapsed .subsec-body{display:none}
+
+/* CHECKLIST */
+.checklist{padding:4px 0}
+.ci{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:7px 14px;transition:background .1s;cursor:pointer;
+  border-bottom:1px solid rgba(30,45,61,.5);
+}
+.ci:last-child{border-bottom:none}
+.ci:hover{background:var(--s2)}
+.ci input[type=checkbox]{
+  width:14px;height:14px;min-width:14px;
+  accent-color:var(--accent);cursor:pointer;margin-top:1px;
+}
+.ci label{cursor:pointer;line-height:1.55;color:var(--text);flex:1}
+.ci.done label{color:var(--muted);text-decoration:line-through}
+.cmd{
+  display:inline;font-family:var(--mono);font-size:10px;
+  color:var(--purple);background:rgba(167,139,250,.08);
+  border:1px solid rgba(167,139,250,.2);border-radius:2px;
+  padding:1px 5px;margin-left:5px;word-break:break-all;
+}
+
+/* NOTES */
+.notes-wrap{padding:10px 14px;border-top:1px solid var(--border);background:rgba(0,0,0,.15)}
+.notes-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:5px}
+.notes-wrap textarea{
+  width:100%;background:var(--s3);border:1px solid var(--border);
+  border-radius:2px;color:var(--text);font-family:inherit;font-size:12px;
+  padding:7px 10px;resize:vertical;min-height:52px;outline:none;line-height:1.5;
+}
+.notes-wrap textarea:focus{border-color:var(--accent)}
+.notes-wrap textarea::placeholder{color:var(--muted)}
+
+/* REPORT FIELDS */
+.rf{margin-bottom:14px}
+.rf label{display:block;font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-family:var(--mono);color:var(--muted);margin-bottom:5px}
+.rf input,.rf textarea{
+  width:100%;background:var(--s2);border:1px solid var(--border);
+  border-radius:2px;color:var(--text);font-family:inherit;font-size:12px;
+  padding:8px 10px;outline:none;
+}
+.rf input:focus,.rf textarea:focus{border-color:var(--accent)}
+.rf textarea{resize:vertical;min-height:70px;line-height:1.5}
+
+/* MODAL */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(2px);
+  z-index:1000;align-items:center;justify-content:center;
+}
+.overlay.open{display:flex}
+.modal{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--radius);padding:24px;
+  width:90%;max-width:460px;
+  box-shadow:0 0 40px rgba(0,0,0,.6);
+}
+.modal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.modal h3{font-size:15px;font-weight:700;letter-spacing:.02em}
+.modal-sub{font-size:12px;color:var(--dim);margin-bottom:18px;line-height:1.5}
+.modal-fields{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end}
+.modal-ta{
+  width:100%;height:120px;background:var(--s2);border:1px solid var(--border);
+  border-radius:2px;color:var(--text);font-family:var(--mono);font-size:11px;
+  padding:8px;resize:vertical;outline:none;
+}
+.modal-ta:focus{border-color:var(--accent)}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:20px;right:20px;z-index:2000;
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:10px 14px;font-size:12px;
+  font-family:var(--mono);display:flex;align-items:center;gap:8px;
+  opacity:0;transform:translateY(6px);transition:all .2s;pointer-events:none;
+  max-width:300px;
+}
+#toast.show{opacity:1;transform:none}
+#toast.ok{border-color:var(--green);color:var(--green)}
+#toast.err{border-color:var(--red);color:var(--red)}
+
+/* TAG */
+.tag{
+  display:inline-block;font-size:9px;font-family:var(--mono);
+  letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;
+  border-radius:2px;font-weight:700;
+}
+.tag-blue{background:var(--accent-glow);color:var(--accent-bright);border:1px solid rgba(59,130,246,.3)}
+.tag-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+.tag-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.tag-muted{background:var(--s3);color:var(--muted);border:1px solid var(--border)}
+
+/* MOBILE */
+#mob-bar{display:none;background:var(--s1);border-bottom:1px solid var(--border);padding:8px 12px;position:sticky;top:82px;z-index:150}
+#mob-bar select{
+  width:100%;background:var(--s2);border:1px solid var(--border);
+  color:var(--text);padding:7px 10px;border-radius:var(--radius);
+  font-size:12px;outline:none;
+}
+
+/* SECTION WRAPPER */
+.section{display:none}
+.section.active{display:block}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+@media(max-width:768px){
+  #va-sidebar{display:none}
+  #mob-bar{display:block}
+  #va-main{padding:12px}
+}
+@media print{
+  #classbar,#header,#va-sidebar,#mob-bar,#toast,.overlay,#sb-actions{display:none!important}
+  #view-assessment{display:block!important;height:auto}
+  #va-main{padding:0}
+  .section{display:block!important}
+  .subsec-body{display:block!important}
+  body{background:#fff;color:#000}
+  .ci label{color:#000}
+  .ci.done label{color:#888}
+}
+</style>
+</head>
+<body>
+
+<!-- CLASSIFICATION BAR -->
+<div id="classbar">
+  <span>▌ RESTRICTED // AUTHORIZED ACCESS ONLY // VAPT ASSESSMENT PLATFORM</span>
+  <span id="cb-date"></span>
+</div>
+
+<!-- HEADER -->
+<div id="header">
+  <div id="logo" onclick="goHome()">
+    <div id="logo-mark"></div>
+    <div id="logo-text">
+      <span id="logo-name">VAPT OPS</span>
+      <span id="logo-sub">Assessment Platform</span>
+    </div>
+  </div>
+  <div id="header-right">
+    <span id="current-org-tag"></span>
+    <div id="sync-pill">
+      <div class="sdot" id="sdot"></div>
+      <span id="slabel">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- MOB NAV (assessment view) -->
+<div id="mob-bar">
+  <select id="mob-sel" onchange="switchSec(this.value)"></select>
+</div>
+
+<!-- ═══════════════════════════════ ORG LIST VIEW ═══ -->
+<div id="view-list">
+  <div class="vl-header">
+    <div class="vl-title">
+      <span>Active Engagements</span>
+      <strong id="org-count-label">Loading...</strong>
+    </div>
+    <button class="btn btn-primary" onclick="openCreateOrg()">+ New Target</button>
+  </div>
+  <div class="org-grid" id="org-grid">
+    <div class="empty-state" id="org-loading">
+      <div class="empty-icon">⟳</div>
+      <p>Connecting to server...</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ASSESSMENT VIEW ═══ -->
+<div id="view-assessment" style="display:none;flex-direction:row">
+
+  <!-- SIDEBAR -->
+  <div id="va-sidebar">
+    <div class="sb-section">
+      <div class="sb-section-label">Navigation</div>
+      <div id="sb-nav"></div>
+    </div>
+    <div style="flex:1"></div>
+    <div id="sb-overall">
+      <div class="sb-overall-label"><span>OVERALL</span><span id="ov-pct">0%</span></div>
+      <div class="prog-bar"><div class="prog-fill" id="ov-fill" style="width:0%"></div></div>
+      <div id="sb-count" style="margin-top:4px"></div>
+    </div>
+    <div id="sb-actions">
+      <button class="btn btn-sm" onclick="exportState()">Export State</button>
+      <button class="btn btn-sm" onclick="importState()">Import State</button>
+      <button class="btn btn-sm" onclick="window.print()">Print / PDF</button>
+      <button class="btn btn-sm btn-danger" onclick="confirmReset()">Reset</button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="va-main"></div>
+</div>
+
+<!-- ═══════════════════════════════ MODALS ═══ -->
+
+<!-- Create Org -->
+<div class="overlay" id="modal-create">
+  <div class="modal">
+    <div class="modal-top">
+      <h3>New Target Engagement</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-create')">✕</button>
+    </div>
+    <p class="modal-sub">Create a new assessment for a target organization. Each engagement has its own independent checklist and state.</p>
+    <div class="modal-fields">
+      <div class="rf">
+        <label>Engagement Name *</label>
+        <input type="text" id="new-name" placeholder="e.g. ACME Corp — API Compromise" autocomplete="off">
+      </div>
+      <div class="rf">
+        <label>Client / Organization</label>
+        <input type="text" id="new-client" placeholder="e.g. ACME Corporation" autocomplete="off">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-create')">Cancel</button>
+      <button class="btn btn-primary" onclick="createOrg()">Create Engagement</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic modal (export/import/confirm) -->
+<div class="overlay" id="modal-generic">
+  <div class="modal">
+    <div class="modal-top">
+      <h3 id="mg-title"></h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-generic')">✕</button>
+    </div>
+    <p class="modal-sub" id="mg-desc"></p>
+    <textarea class="modal-ta" id="mg-text" spellcheck="false"></textarea>
+    <div class="modal-foot" style="margin-top:12px">
+      <button class="btn" onclick="closeModal('modal-generic')">Cancel</button>
+      <button class="btn btn-primary" id="mg-btn"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CHECKLIST DATA
+// ═══════════════════════════════════════════════════════
+const SECTIONS=[
+{id:'pre',icon:'📋',title:'Pre-Assessment',color:'#60a5fa',
+ desc:'Scope, authorization, and information gathering before touching any system.',
+ groups:[
+  {id:'pre-auth',title:'Authorization & Scope',icon:'🔐',items:[
+    'Obtain written authorization / Rules of Engagement signed by client',
+    'Document assessment start date and time',
+    'List all systems in scope (hostnames, IPs, cloud accounts)',
+    'Identify client point of contact and emergency escalation path',
+    'Define out-of-scope systems to avoid touching',
+    'Confirm legal authorization covers all target systems',
+    'Set up secure, encrypted note-taking for this engagement',
+    'Establish secure comms channel with client (Signal, encrypted email)',
+  ]},
+  {id:'pre-intel',title:'Known Incident Details',icon:'🔑',items:[
+    'Document which API keys were leaked (names, services, scopes)',
+    'Record when the leak was first discovered by the client',
+    'Determine estimated start date of exposure window',
+    'Identify where the keys were exposed (git, Slack, pastebin, dark web, etc.)',
+    'Collect all leaked key values/partial values for log searching',
+    'Identify all third-party services using the compromised keys',
+    'Determine if any keys have already been rotated/revoked',
+    'Check if any incident response is already in progress',
+  ]},
+  {id:'pre-asset',title:'Asset Inventory',icon:'🗂️',items:[
+    'List all Windows workstations and servers in scope',
+    'List all macOS devices in scope',
+    'List all Linux servers in scope',
+    'Identify cloud environments (AWS / GCP / Azure accounts)',
+    'Map out network topology and segmentation',
+    'Identify external-facing services and domains',
+    'List all code repositories (GitHub, GitLab, Bitbucket, etc.)',
+    'Identify CI/CD pipelines and deployment systems',
+    'Map third-party integrations (Stripe, Twilio, SendGrid, etc.)',
+  ]},
+ ]},
+
+{id:'win',icon:'🪟',title:'Windows Systems',color:'#3b82f6',
+ desc:'Compromise indicators across Windows workstations and servers.',
+ groups:[
+  {id:'win-users',title:'User Accounts & Authentication',icon:'👤',items:[
+    ['List all local user accounts','net user'],
+    ['List all administrator group members','net localgroup administrators'],
+    ['Check for accounts created recently (Event ID 4720)','Get-LocalUser | Sort-Object LastLogon'],
+    ['Look for hidden accounts (names ending in $)','net user | findstr /i "$"'],
+    ['Check for accounts with no password required','net user <username> | findstr "Password required"'],
+    'Check for accounts with unicode lookalike characters in names',
+    ['Review Remote Desktop Users group','net localgroup "Remote Desktop Users"'],
+    ['Check domain accounts if domain-joined','net user /domain'],
+    'Review recently enabled or unlocked accounts',
+    ['List accounts with no expiry','wmic useraccount where "PasswordExpires=FALSE" get Name'],
+  ]},
+  {id:'win-proc',title:'Processes & Services',icon:'⚙️',items:[
+    ['List running processes with full paths','Get-Process | Select Name,Id,Path | Format-List'],
+    ['Find processes running from temp/appdata','tasklist /v | findstr /i "temp\\|appdata\\|public"'],
+    ['Check for svchost.exe not running from System32','wmic process where "Name=\'svchost.exe\'" get ExecutablePath'],
+    ['Look for masquerading process names','tasklist /v | findstr /i "svch0st\\|lsas\\|csrs"'],
+    ['List all services','sc query type= all state= all'],
+    ['Check for services created recently (Event ID 7045)','Get-WinEvent -FilterHashtable @{LogName=\'System\';Id=7045} -MaxEvents 100'],
+    ['Inspect service binary paths for unusual locations','Get-WmiObject win32_service | Where-Object {$_.PathName -match "temp|appdata|public"}'],
+    ['Services running as LocalSystem with unusual names','Get-WmiObject win32_service | Where-Object {$_.StartName -eq "LocalSystem"} | Select Name,PathName'],
+    'Check DLL injection in known system processes (use Process Explorer)',
+    'Look for processes with no icon, no version info, or unsigned binaries',
+  ]},
+  {id:'win-net',title:'Network Connections',icon:'🌐',items:[
+    ['List all active connections with PIDs','netstat -ano'],
+    ['Map PIDs to process names','Get-NetTCPConnection | Select LocalPort,RemoteAddress,RemotePort,State,OwningProcess'],
+    'Identify unusual outbound connections (unexpected IPs, beaconing patterns)',
+    'Check for connections on non-standard ports (C2 on 443 to unknown IPs)',
+    ['List all listening ports','netstat -ano | findstr LISTENING'],
+    ['Review all network shares','net share'],
+    ['Check for unauthorized admin shares','net share | findstr /i "c$\\|d$\\|admin$"'],
+    ['Inspect hosts file for modifications','type %SystemRoot%\\System32\\drivers\\etc\\hosts'],
+    ['Check DNS cache for suspicious domains','ipconfig /displaydns'],
+    ['Review proxy settings','netsh winhttp show proxy'],
+    'Check for WinRM being enabled unexpectedly',
+    ['Review ARP cache for unusual entries','arp -a'],
+  ]},
+  {id:'win-persist',title:'Persistence Mechanisms',icon:'🔄',items:[
+    ['Check HKCU Run key','reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'],
+    ['Check HKLM Run key','reg query HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run'],
+    ['Check RunOnce keys','reg query HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce'],
+    ['Review user Startup folder','dir "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"'],
+    ['Review all-users Startup folder','dir "%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"'],
+    ['List all scheduled tasks','schtasks /query /fo LIST /v'],
+    ['Find tasks running from unusual locations','Get-ScheduledTask | Where-Object {$_.Actions.Execute -match "temp|appdata|public"}'],
+    ['Check WMI event subscriptions','Get-WMIObject -Namespace root\\subscription -Class __EventFilter'],
+    ['Check WMI consumer bindings','Get-WMIObject -Namespace root\\subscription -Class __FilterToConsumerBinding'],
+    ['Check Boot Execute registry key','reg query "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager" /v BootExecute'],
+    ['Check Image File Execution Options (debugger hijacking)','reg query "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options"'],
+    ['Review AppInit_DLLs','reg query "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows" /v AppInit_DLLs'],
+    ['Check LSA notification packages','reg query "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa" /v "Notification Packages"'],
+    ['Check Security Support Providers','reg query "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Lsa" /v "Security Packages"'],
+    ['Review Winlogon for unusual values','reg query "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon"'],
+  ]},
+  {id:'win-logs',title:'Event Logs',icon:'📜',items:[
+    ['Check for cleared Security log (Event ID 1102)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=1102} -ErrorAction SilentlyContinue'],
+    ['Check for cleared System log (Event ID 104)','Get-WinEvent -FilterHashtable @{LogName=\'System\';Id=104} -ErrorAction SilentlyContinue'],
+    ['Successful logons — all types (Event ID 4624)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=4624} | Select -First 50'],
+    ['Failed logons — brute force indicator (Event ID 4625)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=4625} | Select -First 50'],
+    ['Logon with explicit credentials (Event ID 4648)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=4648} | Select -First 30'],
+    ['Special privileges at logon (Event ID 4672)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=4672} | Select -First 30'],
+    ['Process creation audit (Event ID 4688)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=4688} | Select -First 100'],
+    ['Scheduled task created (Event ID 4698)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=4698} -ErrorAction SilentlyContinue'],
+    ['New user account created (Event ID 4720)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=4720} -ErrorAction SilentlyContinue'],
+    ['User added to privileged group (Event ID 4732)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=4732} -ErrorAction SilentlyContinue'],
+    ['New service installed (Event ID 7045)','Get-WinEvent -FilterHashtable @{LogName=\'System\';Id=7045} -ErrorAction SilentlyContinue'],
+    ['PowerShell script block logging (Event ID 4104)','Get-WinEvent -FilterHashtable @{LogName=\'Microsoft-Windows-PowerShell/Operational\';Id=4104} | Select -First 50'],
+    ['RDP connection attempts (Event ID 4778/4779)','Get-WinEvent -FilterHashtable @{LogName=\'Security\';Id=4778} | Select -First 20'],
+    'Review Windows Defender detection log for cleared/disabled events',
+    'Check for gaps in log timestamps (possible log tampering)',
+  ]},
+  {id:'win-fs',title:'File System Artifacts',icon:'📁',items:[
+    ['Check temp dirs for executables','dir /s /b %TEMP%\\*.exe %TMP%\\*.exe C:\\Windows\\Temp\\*.exe'],
+    ['Find recently modified files in Windows dir','forfiles /p C:\\Windows\\System32 /d -7 /m *.exe /c "cmd /c echo @path @fdate @ftime"'],
+    ['Review all user Download folders','dir /s /b C:\\Users\\*\\Downloads\\*.exe C:\\Users\\*\\Downloads\\*.zip'],
+    'Check for files with double extensions (invoice.pdf.exe, document.docx.bat)',
+    ['Search for executables in unusual user directories','Get-ChildItem -Path C:\\Users -Recurse -Include *.exe,*.dll -ErrorAction SilentlyContinue'],
+    ['Check C:\\Users\\Public for malware staging','dir C:\\Users\\Public\\*'],
+    ['List recently installed software','Get-WmiObject Win32_Product | Sort-Object InstallDate -Descending | Select -First 20'],
+    ['Look for suspicious scripts in user dirs','Get-ChildItem -Path C:\\Users -Recurse -Include *.ps1,*.bat,*.vbs,*.js,*.hta -ErrorAction SilentlyContinue'],
+    'Check for large archive files that could indicate data staging',
+    ['Review prefetch files for execution history','Get-ChildItem C:\\Windows\\Prefetch | Sort-Object LastWriteTime -Descending'],
+    'Check recycle bin across all users for deleted suspicious files',
+  ]},
+  {id:'win-ps',title:'PowerShell & Scripts',icon:'💻',items:[
+    ['Review PowerShell history for each user','Get-Content (Get-PSReadlineOption).HistorySavePath'],
+    ['Check execution policy','Get-ExecutionPolicy -List'],
+    ['Look for PS profiles with malicious content','cat $PROFILE ; cat $PROFILE.AllUsersAllHosts'],
+    'Search logs for base64 encoded PowerShell commands (-EncodedCommand)',
+    ['Check if PowerShell remoting is enabled','Get-PSSessionConfiguration | Select Name,Permission'],
+    'Look for AMSI bypass strings in logs (amsiContext, amsiInitFailed)',
+    'Check for obfuscated scripts (unusual char encoding, concatenation)',
+  ]},
+  {id:'win-creds',title:'Credentials & Secrets',icon:'🗝️',items:[
+    ['List saved Windows credentials','cmdkey /list'],
+    'Review Windows Credential Manager for unusual entries',
+    ['Search for password files in common locations','Get-ChildItem -Path C:\\Users -Recurse -Include *password*,*passwd*,*creds*,*.env -ErrorAction SilentlyContinue'],
+    'Check environment variables for secrets (API keys, passwords)',
+    ['Review AWS credential files','dir C:\\Users\\*\\.aws\\credentials'],
+    ['Check for GCP credential files','dir C:\\Users\\*\\.config\\gcloud\\'],
+    ['Check SSH keys in user dirs','dir /s /b C:\\Users\\*\\.ssh\\id_*'],
+    'Review application config files for hardcoded secrets',
+    ['Search for .env files with API keys','Get-ChildItem -Path C:\\ -Recurse -Include .env,*.env -ErrorAction SilentlyContinue | Select-String "KEY\\|SECRET\\|TOKEN\\|PASSWORD"'],
+    'Check for Mimikatz artifacts (mimilib.dll, sekurlsa logs)',
+    'Verify no LSASS dump files present (lsass.dmp, procdump output)',
+  ]},
+  {id:'win-sec',title:'Security Configuration',icon:'🛡️',items:[
+    ['Check Windows Defender status','Get-MpComputerStatus | Select AntivirusEnabled,RealTimeProtectionEnabled,TamperProtectionSource'],
+    ['Check Defender exclusions (attacker-added)','Get-MpPreference | Select ExclusionPath,ExclusionProcess,ExclusionExtension'],
+    ['Review Windows Firewall status','netsh advfirewall show allprofiles'],
+    ['List inbound firewall rules for unusual entries','Get-NetFirewallRule | Where-Object {$_.Enabled -eq "True" -and $_.Direction -eq "Inbound"} | Select DisplayName,Action'],
+    ['Check UAC settings','reg query "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System" /v EnableLUA'],
+    ['Review audit policy','auditpol /get /category:*'],
+    ['Check BitLocker status','manage-bde -status'],
+    ['Review Windows Update status','Get-HotFix | Sort-Object InstalledOn -Descending | Select -First 10'],
+    'Check for disabled Windows security features (WDEG, CFG, ASLR)',
+  ]},
+  {id:'win-remote',title:'Remote Access',icon:'🔌',items:[
+    ['Check for installed RATs','Get-WmiObject Win32_Product | Where-Object {$_.Name -match "TeamViewer|AnyDesk|ScreenConnect|LiteManager|RemotePC|Splashtop"}'],
+    ['Check RDP configuration','reg query "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server" /v fDenyTSConnections'],
+    ['Review RDP recent connections','reg query "HKCU\\Software\\Microsoft\\Terminal Server Client\\Default"'],
+    'Check for unauthorized VPN clients installed',
+    ['Review WinRM configuration','Get-WSManInstance -ResourceURI winrm/config'],
+    ['Check for SSH server installation','Get-WindowsCapability -Online | Where-Object Name -like "OpenSSH.Server*"'],
+    'Review ngrok, frp, or other tunneling tools in process list',
+    'Check for reverse shell indicators in network connections',
+  ]},
+ ]},
+
+{id:'mac',icon:'🍎',title:'macOS Systems',color:'#94a3b8',
+ desc:'Compromise indicators across macOS endpoints.',
+ groups:[
+  {id:'mac-users',title:'User Accounts & Authentication',icon:'👤',items:[
+    ["List all user accounts","dscl . list /Users | grep -v '^_'"],
+    ["Check for accounts with UID 0","sudo dscl . -list /Users UniqueID | awk '$2 == 0'"],
+    ["Review admin group members","dscl . -read /Groups/admin GroupMembership"],
+    ["Check FileVault encryption status","fdesetup status"],
+    ["Review login history","last | head -50"],
+    ["Check for unusual hidden users","defaults read /Library/Preferences/com.apple.loginwindow HiddenUsersList 2>/dev/null"],
+    ["Review sudoers file","sudo cat /etc/sudoers ; sudo ls /etc/sudoers.d/"],
+    ["Check authorized_keys for all users","for u in $(dscl . list /Users | grep -v '^_'); do echo \"--- $u ---\"; cat /Users/$u/.ssh/authorized_keys 2>/dev/null; done"],
+  ]},
+  {id:'mac-persist',title:'Persistence Mechanisms',icon:'🔄',items:[
+    ["Check user Launch Agents","ls -la ~/Library/LaunchAgents/"],
+    ["Inspect user Launch Agent plists","for f in ~/Library/LaunchAgents/*.plist; do plutil -p \"$f\"; done"],
+    ["Check system Launch Agents","ls -la /Library/LaunchAgents/"],
+    ["Check Launch Daemons","sudo ls -la /Library/LaunchDaemons/"],
+    ["Inspect Launch Daemon plists","sudo for f in /Library/LaunchDaemons/*.plist; do plutil -p \"$f\"; done"],
+    ["Check Login Items","osascript -e 'tell application \"System Events\" to get the name of every login item'"],
+    ["Check user crontab","crontab -l"],
+    ["Check root crontab","sudo crontab -l -u root"],
+    ["Check at jobs","atq"],
+    ["Check login hooks","sudo defaults read com.apple.loginwindow LoginHook 2>/dev/null"],
+    "Inspect ~/Library/Application Support/ for unusual directories",
+    ["Check for malicious Chrome extensions","ls ~/Library/Application\\ Support/Google/Chrome/Default/Extensions/"],
+    ["Check emond rules (persistence)","sudo ls /etc/emond.d/rules/"],
+  ]},
+  {id:'mac-proc',title:'Processes & Network',icon:'🌐',items:[
+    ["List all running processes","ps aux"],
+    ["List processes with open network connections","sudo lsof -i -P"],
+    ["Show all listening services","sudo lsof -i -P | grep LISTEN"],
+    ["Show active outbound connections","sudo lsof -i -P | grep ESTABLISHED"],
+    ["Check /etc/hosts for modifications","cat /etc/hosts"],
+    ["Review DNS resolver settings","scutil --dns | head -20"],
+    "Look for processes running from /tmp, /var/tmp, or ~/Downloads",
+    ["Review network statistics","netstat -an | grep -E 'ESTABLISHED|LISTEN'"],
+  ]},
+  {id:'mac-integrity',title:'System Integrity & Config',icon:'🛡️',items:[
+    ["Check SIP status","csrutil status"],
+    ["Check Gatekeeper status","spctl --status"],
+    ["Check quarantine on recent downloads","xattr -l ~/Downloads/* 2>/dev/null | grep quarantine"],
+    ["List non-Apple kernel extensions","kextstat | grep -v apple"],
+    ["Review installed config profiles","sudo profiles list"],
+    ["Check macOS Firewall status","sudo /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate"],
+    ["Review firewall rules","sudo /usr/libexec/ApplicationFirewall/socketfilterfw --listapps"],
+    ["Check for automatic login enabled","sudo defaults read /Library/Preferences/com.apple.loginwindow autoLoginUser 2>/dev/null"],
+    ["Check Remote Login (SSH) status","sudo systemsetup -getremotelogin"],
+    ["Check for installed remote access tools","mdfind -name 'TeamViewer' 2>/dev/null ; mdfind -name 'AnyDesk' 2>/dev/null"],
+  ]},
+  {id:'mac-fs',title:'File System Artifacts',icon:'📁',items:[
+    ["Check /tmp and /var/tmp","ls -lah /tmp/ /var/tmp/"],
+    ["Find recently modified files","find /tmp /var/tmp /Users -maxdepth 4 -type f -mtime -7 2>/dev/null | head -50"],
+    "Review Downloads folder for all users",
+    ["Check for hidden files in home directory","ls -la ~/"],
+    ["Check for unusual executables in /usr/local","find /usr/local/bin /usr/local/sbin -type f | xargs ls -la"],
+    "Review /Applications for unsigned or unusual apps",
+  ]},
+  {id:'mac-shell',title:'Shell History & Scripts',icon:'💻',items:[
+    ["Review bash history","cat ~/.bash_history"],
+    ["Review zsh history","cat ~/.zsh_history"],
+    ["Check shell config files for backdoors","cat ~/.zshrc ~/.bashrc ~/.bash_profile ~/.profile"],
+    ["Look for aliases shadowing system commands","alias"],
+    ["Check /etc/profile.d/ for injected scripts","ls -la /etc/profile.d/"],
+    ["Check for DYLD_INSERT_LIBRARIES in env","env | grep -i 'ld_\\|dyld_\\|path'"],
+  ]},
+  {id:'mac-creds',title:'Credentials & Secrets',icon:'🗝️',items:[
+    ["Check for .env files with secrets","find ~ -name '.env' -o -name '*.env' 2>/dev/null | head -20"],
+    ["Review AWS credentials","cat ~/.aws/credentials ~/.aws/config 2>/dev/null"],
+    ["Check GCP credential files","ls -la ~/.config/gcloud/ 2>/dev/null"],
+    ["List SSH keys","ls -la ~/.ssh/"],
+    ["Check known_hosts for unusual entries","cat ~/.ssh/known_hosts"],
+    "Review Keychain Access for suspicious certificates or passwords",
+    ["Scan environment variables for secrets","printenv | grep -iE 'key|secret|token|password|api'"],
+  ]},
+  {id:'mac-logs',title:'Logs & Audit',icon:'📜',items:[
+    ["Review unified system log (last hour)","log show --last 1h --predicate 'eventMessage contains \"error\" or eventMessage contains \"failed\"' | head -100"],
+    ["Check sudo usage","log show --predicate 'eventMessage contains \"sudo\"' --last 24h | head -50"],
+    ["Review SSH login attempts","log show --predicate 'process == \"sshd\"' --last 24h | head -50"],
+    ["Check failed authentication","log show --predicate 'eventMessage contains \"authentication failed\"' --last 24h | head -50"],
+    ["Check last successful logins","last | head -30"],
+    ["Check last failed logins","sudo lastb 2>/dev/null | head -20"],
+  ]},
+ ]},
+
+{id:'linux',icon:'🐧',title:'Linux Servers',color:'#10b981',
+ desc:'Compromise indicators across Linux servers, web servers, and databases.',
+ groups:[
+  {id:'lx-users',title:'User Accounts & Access',icon:'👤',items:[
+    ["Review /etc/passwd for unusual accounts","cat /etc/passwd"],
+    ["Check for accounts with UID 0","awk -F: '$3 == 0 {print}' /etc/passwd"],
+    ["List users with login shells","grep -v '/nologin\\|/false' /etc/passwd | cut -d: -f1"],
+    ["Review sudoers configuration","sudo cat /etc/sudoers ; sudo ls /etc/sudoers.d/ ; sudo cat /etc/sudoers.d/*"],
+    ["Check /etc/shadow for unlocked accounts","sudo awk -F: '$2 !~ /^[!*]/ {print $1\" has password hash\"}' /etc/shadow"],
+    ["Find recently modified account files","ls -la /etc/passwd /etc/shadow /etc/group /etc/sudoers"],
+    ["Review /root/.ssh/authorized_keys","sudo cat /root/.ssh/authorized_keys 2>/dev/null"],
+    ["Check authorized_keys for all users","for u in $(cut -d: -f1 /etc/passwd); do f=\"/home/$u/.ssh/authorized_keys\"; [ -f $f ] && echo \"=== $u ===\" && cat $f; done"],
+    ["Review PAM config for backdoors","ls /etc/pam.d/ ; sudo cat /etc/pam.d/sshd"],
+    ["Check /etc/group for unauthorized privilege assignment","cat /etc/group | grep -E 'sudo|wheel|admin|root'"],
+  ]},
+  {id:'lx-proc',title:'Processes & Services',icon:'⚙️',items:[
+    ["Full process tree","ps auxf"],
+    ["Find processes running as root","ps aux | awk '$1==\"root\"' | grep -v '\\[' | head -30"],
+    ["Find processes with deleted/replaced binaries","sudo ls -la /proc/*/exe 2>/dev/null | grep deleted"],
+    ["List all systemd services","systemctl list-units --type=service --all"],
+    ["Check recently modified service unit files","find /etc/systemd /lib/systemd -newer /tmp -name '*.service' 2>/dev/null"],
+    ["Review init scripts","ls /etc/init.d/"],
+    ["Find processes running from unusual directories","ls -la /proc/*/exe 2>/dev/null | grep -v 'usr\\|bin\\|sbin\\|lib'"],
+  ]},
+  {id:'lx-net',title:'Network Connections',icon:'🌐',items:[
+    ["All listening ports with owning processes","sudo ss -tulnp"],
+    ["All established connections","sudo ss -tnp | grep ESTAB"],
+    ["Review firewall rules (iptables)","sudo iptables -L -n -v"],
+    ["Review firewall rules (nftables)","sudo nft list ruleset 2>/dev/null"],
+    ["Review firewall rules (ufw)","sudo ufw status verbose 2>/dev/null"],
+    ["Check /etc/hosts for modifications","cat /etc/hosts"],
+    ["Check resolv.conf for unauthorized DNS","cat /etc/resolv.conf"],
+    ["Check network interfaces","ip addr show ; ip route show"],
+    ["Check for promiscuous mode interfaces","ip link show | grep PROMISC"],
+    ["Review hosts.allow and hosts.deny","cat /etc/hosts.allow /etc/hosts.deny 2>/dev/null"],
+  ]},
+  {id:'lx-persist',title:'Persistence Mechanisms',icon:'🔄',items:[
+    ["Check root crontab","sudo crontab -l"],
+    ["Check all user crontabs","for u in $(cut -d: -f1 /etc/passwd); do sudo crontab -l -u $u 2>/dev/null | grep -v '^#' | grep . && echo \"^ $u\"; done"],
+    ["Review /etc/crontab","cat /etc/crontab"],
+    ["Review /etc/cron.d/ entries","ls -la /etc/cron.d/ ; cat /etc/cron.d/*"],
+    ["Check cron periodic dirs","ls /etc/cron.daily/ /etc/cron.weekly/ /etc/cron.monthly/ /etc/cron.hourly/"],
+    ["Check at job queue","atq"],
+    ["List systemd timers","systemctl list-timers --all"],
+    ["Check /etc/rc.local","cat /etc/rc.local 2>/dev/null"],
+    ["Check all user shell profiles for backdoors","for u in $(cut -d: -f1 /etc/passwd); do for f in .bashrc .bash_profile .profile .zshrc; do [ -f \"/home/$u/$f\" ] && cat \"/home/$u/$f\" | grep -v '^#' | grep .; done; done"],
+    ["Check /etc/profile and /etc/profile.d/","cat /etc/profile ; ls /etc/profile.d/ ; cat /etc/profile.d/*"],
+    ["CRITICAL — Check ld.so.preload for library injection","sudo cat /etc/ld.so.preload 2>/dev/null"],
+    ["Check LD_PRELOAD in running process environment","sudo cat /proc/*/environ 2>/dev/null | tr '\\0' '\\n' | grep LD_PRELOAD"],
+    ["Scan for rootkits (if tools available)","sudo chkrootkit 2>/dev/null ; sudo rkhunter --check 2>/dev/null"],
+    ["Review loaded kernel modules","lsmod | grep -v '^Module'"],
+  ]},
+  {id:'lx-fs',title:'File System Artifacts',icon:'📁',items:[
+    ["Check /tmp, /var/tmp, /dev/shm for suspicious files","ls -lah /tmp/ /var/tmp/ /dev/shm/ 2>/dev/null"],
+    ["Find recently modified files (last 7 days)","find / -xdev -type f -mtime -7 2>/dev/null | grep -v '/proc\\|/sys\\|/run\\|/dev' | head -100"],
+    ["Find SUID/SGID files","find / -xdev -perm /6000 -type f 2>/dev/null"],
+    ["Find world-writable directories","find / -xdev -perm -0002 -type d 2>/dev/null | grep -v '/proc\\|/sys\\|/dev'"],
+    ["Find files with no owner","find / -xdev -nouser -o -nogroup 2>/dev/null | head -30"],
+    ["Check binary integrity (rpm-based)","rpm -Va 2>/dev/null | grep -E '^..5|^.M' | head -30"],
+    ["Check binary integrity (deb-based)","dpkg -V 2>/dev/null | head -30"],
+    ["Look for executables in /tmp or /dev/shm","find /tmp /var/tmp /dev/shm -executable -type f 2>/dev/null"],
+    ["Find hidden files in common directories","find / -maxdepth 5 -name '.*' -type f 2>/dev/null | grep -v '.ssh\\|.bash\\|.config\\|.cache\\|git' | head -30"],
+    ["Check /usr/local/bin and /usr/local/sbin","ls -la /usr/local/bin/ /usr/local/sbin/"],
+    "Verify integrity of critical binaries (ssh, sudo, ls, ps, netstat)",
+  ]},
+  {id:'lx-logs',title:'Logs & Audit Trail',icon:'📜',items:[
+    ["Review auth log (Debian/Ubuntu)","sudo tail -200 /var/log/auth.log"],
+    ["Review secure log (RHEL/CentOS)","sudo tail -200 /var/log/secure 2>/dev/null"],
+    ["Last successful logins","last -F | head -50"],
+    ["Last failed login attempts","sudo lastb | head -50"],
+    ["All users who logged in recently","lastlog | grep -v 'Never'"],
+    ["Review syslog/messages","sudo tail -200 /var/log/syslog 2>/dev/null || sudo tail -200 /var/log/messages 2>/dev/null"],
+    ["Check journalctl for errors","sudo journalctl -p err -b | head -50"],
+    "Check for log files with modified timestamps or missing expected entries",
+    "Look for gaps in log timestamps that could indicate log clearing",
+    ["Check root bash history","sudo cat /root/.bash_history 2>/dev/null | tail -50"],
+    ["Check bash history for all users","for u in $(cut -d: -f1 /etc/passwd); do h=\"/home/$u/.bash_history\"; [ -f $h ] && echo \"=== $u ===\" && tail -30 $h; done"],
+    ["Review sudo usage in logs","grep 'sudo' /var/log/auth.log 2>/dev/null | tail -30"],
+    ["Check auditd logs if enabled","sudo ausearch -ts recent 2>/dev/null | head -50"],
+  ]},
+  {id:'lx-ssh',title:'SSH Configuration',icon:'🔐',items:[
+    ["Review sshd_config","sudo cat /etc/ssh/sshd_config"],
+    ["Check if root login is allowed","sudo grep -i 'PermitRootLogin' /etc/ssh/sshd_config"],
+    ["Check if password auth is enabled","sudo grep -i 'PasswordAuthentication' /etc/ssh/sshd_config"],
+    ["Find all authorized_keys files","find / -name 'authorized_keys' 2>/dev/null | xargs ls -la"],
+    ["Look for SSH tunnels in process list","ps aux | grep 'ssh.*-[LRD]'"],
+    "Check for authorized_keys with command= prefixes (backdoor indicator)",
+    ["Review client SSH configs","find /home /root -name 'config' -path '*/.ssh/*' 2>/dev/null | xargs cat"],
+  ]},
+  {id:'lx-web',title:'Web Server & Applications',icon:'🌍',items:[
+    ["List web root contents","ls -la /var/www/html/ /srv/www/ 2>/dev/null"],
+    ["Search for PHP web shells","find /var/www -name '*.php' -mtime -30 2>/dev/null | xargs ls -la"],
+    ["Search for web shell signatures","grep -rla 'eval(base64_decode\\|system($_\\|passthru($_\\|shell_exec($_' /var/www/ 2>/dev/null"],
+    ["Review web server access logs","sudo tail -200 /var/log/apache2/access.log 2>/dev/null || sudo tail -200 /var/log/nginx/access.log 2>/dev/null"],
+    ["Review web server error logs","sudo tail -100 /var/log/apache2/error.log 2>/dev/null || sudo tail -100 /var/log/nginx/error.log 2>/dev/null"],
+    ["Check .htaccess files for malicious rules","find /var/www -name '.htaccess' | xargs cat 2>/dev/null"],
+    ["Review uploaded files directories","find /var/www -name 'uploads' -o -name 'upload' -o -name 'files' | xargs ls -la 2>/dev/null"],
+    "Check for path traversal or LFI exploitation in access logs",
+    "Check for SQL injection patterns in web logs",
+    "Look for admin panel access from unusual IPs in logs",
+    ["Review app config for exposed secrets","find /var/www -name '*.env' -o -name 'config.php' -o -name 'database.yml' 2>/dev/null | xargs grep -l 'password\\|secret\\|key'"],
+  ]},
+  {id:'lx-db',title:'Database Security',icon:'🗄️',items:[
+    "List all database user accounts and compare with expected",
+    "Review database access logs for unusual queries or exports",
+    "Check for SELECT INTO OUTFILE or bulk export queries in query logs",
+    "Review database user privileges (GRANT ALL, SUPER, FILE permissions)",
+    "Check for new database users or privilege changes",
+    "Look for scheduled database jobs dumping/exporting data",
+    ["Find database credential files","find / -name '*.cnf' -o -name 'database.yml' -o -name 'db_config*' 2>/dev/null | head -10"],
+    "Review connection logs for access from unexpected hosts",
+  ]},
+  {id:'lx-container',title:'Containers & Virtualization',icon:'🐳',items:[
+    ["Check Docker socket exposure","ls -la /var/run/docker.sock"],
+    ["List all Docker containers (including stopped)","sudo docker ps -a 2>/dev/null"],
+    ["Check Docker images for unexpected additions","sudo docker images 2>/dev/null"],
+    ["Look for privileged containers","sudo docker inspect $(docker ps -q) 2>/dev/null | grep -i 'privileged.*true'"],
+    ["Check Docker volumes for sensitive data","sudo docker volume ls 2>/dev/null"],
+    ["Check if inside a container","cat /proc/1/cgroup | head -5"],
+  ]},
+ ]},
+
+{id:'api',icon:'🔑',title:'API Keys & Credentials',color:'#eab308',
+ desc:'Trace the API key leak, assess blast radius, and ensure full revocation.',
+ groups:[
+  {id:'api-trace',title:'Trace the Leak',icon:'🔍',items:[
+    "Document full list of compromised key names, services, and permission scopes",
+    ["Search git history across all repos","git log --all -p | grep -E 'AKIA|sk-|ghp_|AIza|Bearer' | head -50"],
+    "Check git repository .env files (including all branches and tags)",
+    ["Run gitleaks or trufflehog on all repos","gitleaks detect --source . OR trufflehog git <repo-url>"],
+    "Check CI/CD pipeline configs (GitHub Actions, GitLab CI, Jenkins) for hardcoded secrets",
+    "Review Slack / Teams / Discord message history for keys shared in chats",
+    "Check if keys were committed to a public repository at any point",
+    "Look in Jira/Confluence/Notion for keys in documentation",
+    "Check Postman collections shared by the team for embedded keys",
+    "Review error tracking tools (Sentry, Rollbar) for keys in error messages",
+    "Check logging services (Splunk, Datadog, Papertrail) for logged key values",
+    "Look at Docker images pushed to registries for embedded keys",
+    ["Scan all IaC files","grep -rE 'api_key|API_KEY|secret|SECRET|token|TOKEN' --include='*.tf' --include='*.yaml' --include='*.yml' ."],
+  ]},
+  {id:'api-blast',title:'Assess Blast Radius',icon:'💥',items:[
+    "Review cloud provider activity logs during the exposure window (AWS CloudTrail / GCP Audit Logs / Azure Monitor)",
+    "Identify ALL actions taken with the compromised keys (list, describe, create, delete, modify)",
+    "Check for new IAM users/roles/service accounts created via the compromised keys",
+    "Check for privilege escalation (policies attached to new or existing users)",
+    "Identify any resources created (EC2, Lambda, storage buckets, databases)",
+    "Check for data access — which buckets, database tables, or secrets were accessed",
+    "Review data transfer/export events — large reads, GetObject calls, downloads",
+    "Check for cryptomining indicators (GPU instances, unusual compute in unusual regions)",
+    "Identify unusual API calls in unusual geographic regions",
+    "Check for changes to billing alerts or budget thresholds",
+    "Review changes to security configurations (disabled CloudTrail, modified SCPs)",
+    "Check if the keys were used to access secrets manager / parameter store",
+    "Review third-party service logs for the compromised keys (Stripe, Twilio, etc.)",
+    "Check if keys had email/notification permissions — look for sent emails/SMS",
+  ]},
+  {id:'api-revoke',title:'Revocation & Remediation',icon:'🔄',items:[
+    "IMMEDIATELY revoke (not just rotate) all confirmed compromised keys",
+    "Rotate all keys that might be compromised (same exposure path)",
+    "Verify revocation is effective — test old key returns 401/403",
+    "Issue new keys with minimum required permissions (principle of least privilege)",
+    "Update all services using the revoked keys with new credentials",
+    "Verify no application downtime from revocation (check monitoring)",
+    "Revoke any OAuth tokens created using the compromised keys",
+    "Revoke any sessions created during the exposure window",
+    "Delete any unauthorized resources created with the keys",
+    "Remove any unauthorized IAM users/roles created via the keys",
+    "Implement secret scanning in CI/CD pipeline (pre-commit hooks, git hooks)",
+    "Enable cloud provider secret detection (AWS Trusted Advisor, GCP SCC)",
+    "Migrate secrets to proper secrets manager (Vault, AWS Secrets Manager, etc.)",
+  ]},
+ ]},
+
+{id:'cloud',icon:'☁️',title:'Cloud & Infrastructure',color:'#a78bfa',
+ desc:'Cloud platform logs, IAM anomalies, and infrastructure changes.',
+ groups:[
+  {id:'cloud-iam',title:'IAM & Access',icon:'🔐',items:[
+    "Review all IAM users created in last 90 days",
+    "Check for IAM users with no MFA enabled",
+    "Review all IAM roles and their trust policies",
+    "Check for overly permissive policies (AdministratorAccess, *:*)",
+    "Review cross-account trust relationships",
+    "Check for service account key downloads",
+    "Identify IAM users/roles that were modified recently",
+    "Review access key age — keys older than 90 days should be rotated",
+    "Check for root account usage (should be near zero)",
+    "Review compliance rules (AWS Config, GCP CSPM) for drift",
+  ]},
+  {id:'cloud-logs',title:'Cloud Audit Logs',icon:'📜',items:[
+    ["Check AWS CloudTrail is enabled in all regions","aws cloudtrail describe-trails --include-shadow-trails"],
+    ["Search CloudTrail for console logins","aws cloudtrail lookup-events --lookup-attributes AttributeKey=EventName,AttributeValue=ConsoleLogin"],
+    "Review GCP Cloud Audit Logs for data access events",
+    "Check Azure Monitor Activity Log for resource modifications",
+    "Verify no CloudTrail/audit logging was disabled during the exposure window",
+    "Look for unusual API call volumes or new API calls never used before",
+    "Check for API calls from unusual source IPs or user agents",
+    "Review GuardDuty / Security Hub findings (AWS)",
+    "Check GCP Security Command Center findings",
+    "Review Azure Defender for Cloud alerts",
+  ]},
+  {id:'cloud-resources',title:'Resource Inventory',icon:'🏗️',items:[
+    "List all compute instances — identify any unauthorized (crypto miners, proxies)",
+    "Check all storage buckets for public access or unusual ACLs",
+    "Review all serverless functions for code modifications",
+    "Check all API gateways for new endpoints",
+    "Review all running databases and their network exposure",
+    "Check for new VPCs, subnets, or security group rule changes",
+    "Review DNS records (Route53, Cloud DNS) for unauthorized changes",
+    "Check CDN configurations for cache poisoning or unauthorized rules",
+    "Review container registries for unauthorized image pushes",
+    "Check billing for unusual cost spikes (strong indicator of unauthorized use)",
+  ]},
+ ]},
+
+{id:'network',icon:'🌐',title:'Network Analysis',color:'#38bdf8',
+ desc:'Network-level indicators across the environment.',
+ groups:[
+  {id:'net-traffic',title:'Traffic Analysis',icon:'📡',items:[
+    "Review firewall / perimeter logs for unusual outbound traffic",
+    "Check for data exfiltration patterns (large uploads to unknown IPs)",
+    "Identify unusual DNS queries (DGA patterns, unusual TLDs, long subdomains)",
+    "Check for DNS over HTTPS/TLS bypassing monitoring",
+    "Review proxy logs for unusual user agents or destinations",
+    "Check for traffic on unusual ports (4444, 1234, 31337, 8888)",
+    "Look for beaconing patterns (periodic connections at regular intervals)",
+    "Check for ICMP tunneling or DNS tunneling indicators",
+    "Review VPN access logs for unusual login times or locations",
+    "Check DHCP logs for unknown devices joining the network",
+    "Review wireless access point logs for rogue devices",
+    "Check IDS/IPS alerts",
+  ]},
+  {id:'net-infra',title:'Infrastructure Checks',icon:'🔧',items:[
+    "Verify all public-facing services are expected and authorized",
+    "Run external port scan to identify unexpected open ports",
+    "Check load balancer configurations for unauthorized rules",
+    "Review WAF rules for bypasses or unauthorized changes",
+    "Check SSL/TLS certificate transparency logs for unauthorized certificates",
+    "Audit all external DNS records for modifications",
+    "Check for unauthorized sub-domain takeovers",
+    "Verify network segmentation is intact between zones",
+    "Review site-to-site VPN configurations",
+  ]},
+ ]},
+
+{id:'report',icon:'📄',title:'Findings & Report',color:'#ef4444',
+ desc:'Document IOCs, timeline, and recommendations.',
+ groups:[
+  {id:'rep-ioc',title:'Indicators of Compromise (IOCs)',icon:'⚠️',items:[
+    "Document all malicious file hashes (MD5, SHA256)",
+    "List all malicious IP addresses observed",
+    "List all malicious domains / URLs observed",
+    "Document attacker-created user accounts",
+    "List all malicious scheduled tasks / cron jobs found",
+    "Document suspicious registry keys (Windows)",
+    "List web shells found (with file paths and hashes)",
+    "Document exfiltration destinations (IPs, domains, cloud storage)",
+    "List all compromised credentials / API keys",
+    "Document attacker tools found on systems",
+    "Record all persistence mechanisms found",
+  ]},
+  {id:'rep-timeline',title:'Attack Timeline',icon:'⏱️',items:[
+    "Establish earliest known date of compromise (key exposure start)",
+    "Record when API keys were first misused (from cloud logs)",
+    "Document initial access method (if identifiable beyond key theft)",
+    "Record lateral movement events with timestamps",
+    "Document data access / exfiltration events with timestamps",
+    "Note any persistence installed and approximate install time",
+    "Record when the client first detected the incident",
+    "Document the full timeline from exposure to detection to containment",
+  ]},
+  {id:'rep-findings',title:'Report Completion',icon:'📝',items:[
+    "List all confirmed compromised systems",
+    "List all systems assessed as clean (with evidence)",
+    "List all systems assessed as unknown/inconclusive",
+    "Document root cause of API key exposure",
+    "Document immediate remediation actions taken",
+    "Write short-term recommendations (0–30 days)",
+    "Write long-term recommendations (30–90 days)",
+    "Draft executive summary (non-technical, impact-focused)",
+    "Include evidence chain of custody documentation",
+    "Attach relevant log excerpts and screenshots",
+    "Have report reviewed before delivery to client",
+    "Schedule debrief call with client team",
+  ]},
+ ]},
+];
+
+// Total items count
+let TOTAL_ITEMS=0;
+SECTIONS.forEach(s=>s.groups.forEach(g=>TOTAL_ITEMS+=g.items.length));
+
+// ═══════════════════════════════════════════════════════
+// STATE & ORG MANAGEMENT
+// ═══════════════════════════════════════════════════════
+const SERVER_MODE = location.protocol !== 'file:';
+let currentOrg = null;
+let state = {checked:{}, notes:{}, reportFields:{}};
+let _pushTimer = null;
+let _lastPulledStr = null;
+let _pollTimer = null;
+
+function iid(gid,idx){ return gid+'_'+idx; }
+function ilabel(item){ return Array.isArray(item)?item[0]:item; }
+function icmd(item){ return Array.isArray(item)?item[1]:null; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function countSec(sid){
+  let total=0,done=0;
+  const s=SECTIONS.find(s=>s.id===sid);
+  if(!s) return {total,done};
+  s.groups.forEach(g=>g.items.forEach((_,i)=>{ total++; if(state.checked[iid(g.id,i)]) done++; }));
+  return {total,done};
+}
+function countAll(){
+  let total=0,done=0;
+  SECTIONS.forEach(s=>{ const c=countSec(s.id); total+=c.total; done+=c.done; });
+  return {total,done};
+}
+
+// ═══════════════════════════════════════════════════════
+// SERVER SYNC
+// ═══════════════════════════════════════════════════════
+function setSyncUI(status,label){
+  const dot=document.getElementById('sdot');
+  const lbl=document.getElementById('slabel');
+  if(!dot) return;
+  dot.className='sdot '+status;
+  lbl.textContent=label;
+}
+
+function schedulePush(){
+  if(!SERVER_MODE||!currentOrg) return;
+  if(_pushTimer) clearTimeout(_pushTimer);
+  _pushTimer=setTimeout(pushState,400);
+}
+
+async function pushState(){
+  if(!SERVER_MODE||!currentOrg) return;
+  setSyncUI('busy','Syncing...');
+  try{
+    const body=JSON.stringify(state);
+    const res=await fetch(`/state/${currentOrg.id}`,{method:'POST',headers:{'Content-Type':'application/json'},body});
+    if(res.ok){ _lastPulledStr=body; setSyncUI('ok','Synced'); }
+    else setSyncUI('err','Sync error');
+  }catch(e){ setSyncUI('err','Unreachable'); }
+}
+
+async function pullState(){
+  if(!SERVER_MODE||!currentOrg) return;
+  try{
+    const res=await fetch(`/state/${currentOrg.id}`);
+    if(!res.ok){ setSyncUI('err','Sync error'); }
+    else{
+      const serverStr=await res.text();
+      if(serverStr&&serverStr!=='{}'){
+        try{
+          const ss=JSON.parse(serverStr);
+          const ssStr=JSON.stringify(ss);
+          if(ssStr!==_lastPulledStr){
+            _lastPulledStr=ssStr;
+            state=ss;
+            localStorage.setItem('vapt_state_'+currentOrg.id,ssStr);
+            refreshCheckboxes();
+            updateAllStats();
+            buildSbNav();
+          }
+        }catch(e){}
+      }
+      setSyncUI('ok','Synced');
+    }
+  }catch(e){ setSyncUI('err','Unreachable'); }
+  _pollTimer=setTimeout(pullState,3000);
+}
+
+function stopPolling(){ if(_pollTimer){ clearTimeout(_pollTimer); _pollTimer=null; } }
+
+function saveState(){
+  localStorage.setItem('vapt_state_'+currentOrg.id,JSON.stringify(state));
+  schedulePush();
+}
+
+// ═══════════════════════════════════════════════════════
+// ORG LIST VIEW
+// ═══════════════════════════════════════════════════════
+async function loadOrgList(){
+  showView('list');
+  stopPolling();
+  currentOrg=null;
+  document.getElementById('current-org-tag').style.display='none';
+  setSyncUI('','');
+
+  if(!SERVER_MODE){
+    // File mode: read from localStorage
+    const raw=localStorage.getItem('vapt_orgs');
+    renderOrgList(raw?JSON.parse(raw):[]);
+    return;
+  }
+  try{
+    const res=await fetch('/orgs');
+    const orgs=await res.json();
+    renderOrgList(orgs);
+  }catch(e){
+    document.getElementById('org-grid').innerHTML=`<div class="empty-state"><div class="empty-icon">⚠</div><p>Cannot reach server.<br>Is it running on port 7331?</p></div>`;
+    setSyncUI('err','Unreachable');
+  }
+}
+
+function renderOrgList(orgs){
+  const label=document.getElementById('org-count-label');
+  label.textContent=orgs.length
+    ? orgs.length+' engagement'+(orgs.length!==1?'s':'')+' on record'
+    : 'No active engagements';
+  const grid=document.getElementById('org-grid');
+  if(!orgs.length){
+    grid.innerHTML=`<div class="empty-state">
+      <div class="empty-icon">🎯</div>
+      <p>No engagements found. Create your first target to begin the assessment.</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML=orgs.map(org=>{
+    const checked=org.checkedCount||0;
+    const pct=Math.round(checked/TOTAL_ITEMS*100);
+    const date=new Date(org.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    const tagClass=pct===0?'tag-muted':pct===100?'tag-green':'tag-blue';
+    const tagLabel=pct===0?'NOT STARTED':pct===100?'COMPLETE':'IN PROGRESS';
+    return `<div class="org-card" onclick="openOrg('${org.id}')">
+      <div class="org-card-body">
+        <div class="org-card-id">ENG-${org.id.toUpperCase().slice(0,8)} &nbsp;<span class="tag ${tagClass}">${tagLabel}</span></div>
+        <div class="org-card-name">${esc(org.name)}</div>
+        <div class="org-card-client">${esc(org.client||'—')}</div>
+        <div class="org-card-prog-label"><span>PROGRESS</span><span>${checked} / ${TOTAL_ITEMS} items (${pct}%)</span></div>
+        <div class="org-card-bar"><div class="org-card-bar-fill${pct===100?' done':''}" style="width:${pct}%"></div></div>
+        <div class="org-card-meta">Created ${date}</div>
+      </div>
+      <div class="org-card-foot" onclick="event.stopPropagation()">
+        <button class="btn btn-sm" onclick="openOrg('${org.id}')">Open Assessment →</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteOrg('${org.id}','${esc(org.name)}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCreateOrg(){
+  document.getElementById('new-name').value='';
+  document.getElementById('new-client').value='';
+  openModal('modal-create');
+  setTimeout(()=>document.getElementById('new-name').focus(),100);
+}
+
+async function createOrg(){
+  const name=document.getElementById('new-name').value.trim();
+  const client=document.getElementById('new-client').value.trim();
+  if(!name){ toast('Engagement name is required','err'); return; }
+  const org={id:hex12(),name,client,createdAt:new Date().toISOString(),checkedCount:0};
+  if(SERVER_MODE){
+    try{
+      const res=await fetch('/orgs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,client})});
+      if(!res.ok){ toast('Server error creating engagement','err'); return; }
+      const created=await res.json();
+      closeModal('modal-create');
+      await openOrg(created.id);
+      return;
+    }catch(e){ toast('Cannot reach server','err'); return; }
+  }
+  // file mode
+  const orgs=JSON.parse(localStorage.getItem('vapt_orgs')||'[]');
+  orgs.push(org);
+  localStorage.setItem('vapt_orgs',JSON.stringify(orgs));
+  closeModal('modal-create');
+  await openOrg(org.id,org);
+}
+
+async function deleteOrg(id,name){
+  if(!confirm(`Delete engagement "${name}"?\n\nAll checklist progress will be permanently lost.`)) return;
+  if(SERVER_MODE){
+    try{
+      await fetch(`/orgs/${id}`,{method:'DELETE'});
+    }catch(e){ toast('Server error','err'); }
+  }else{
+    const orgs=JSON.parse(localStorage.getItem('vapt_orgs')||'[]').filter(o=>o.id!==id);
+    localStorage.setItem('vapt_orgs',JSON.stringify(orgs));
+    localStorage.removeItem('vapt_state_'+id);
+  }
+  toast('Engagement deleted','ok');
+  loadOrgList();
+}
+
+// ═══════════════════════════════════════════════════════
+// ASSESSMENT VIEW
+// ═══════════════════════════════════════════════════════
+async function openOrg(id, orgObj){
+  // Load org info
+  if(!orgObj){
+    if(SERVER_MODE){
+      try{
+        const res=await fetch('/orgs');
+        const orgs=await res.json();
+        orgObj=orgs.find(o=>o.id===id);
+      }catch(e){ toast('Cannot reach server','err'); return; }
+    }else{
+      const orgs=JSON.parse(localStorage.getItem('vapt_orgs')||'[]');
+      orgObj=orgs.find(o=>o.id===id);
+    }
+  }
+  if(!orgObj){ toast('Engagement not found','err'); return; }
+
+  currentOrg=orgObj;
+  state={checked:{},notes:{},reportFields:{}};
+
+  // Load state from localStorage first (instant)
+  const cached=localStorage.getItem('vapt_state_'+id);
+  if(cached){ try{ state=JSON.parse(cached); }catch(e){} }
+
+  // Show assessment view
+  showView('assessment');
+
+  const tag=document.getElementById('current-org-tag');
+  tag.textContent=orgObj.name.toUpperCase();
+  tag.style.display='block';
+
+  buildSbNav();
+  buildMainContent();
+  switchSec(SECTIONS[0].id);
+  updateAllStats();
+
+  // Start server sync
+  if(SERVER_MODE){
+    setSyncUI('busy','Loading...');
+    _lastPulledStr=null;
+    stopPolling();
+    await pullState();
+  }else{
+    setSyncUI('','Local');
+  }
+}
+
+function goHome(){
+  stopPolling();
+  loadOrgList();
+}
+
+// ═══════════════════════════════════════════════════════
+// BUILD UI
+// ═══════════════════════════════════════════════════════
+function buildSbNav(){
+  const nav=document.getElementById('sb-nav');
+  const mob=document.getElementById('mob-sel');
+  nav.innerHTML=''; mob.innerHTML='';
+  SECTIONS.forEach(sec=>{
+    const {total,done}=countSec(sec.id);
+    const el=document.createElement('div');
+    el.className='sb-item';el.dataset.sid=sec.id;
+    el.innerHTML=`<span class="sb-item-icon">${sec.icon}</span><span style="flex:1">${sec.title}</span><span class="sb-badge" id="sbb-${sec.id}">${done}/${total}</span>`;
+    el.onclick=()=>switchSec(sec.id);
+    nav.appendChild(el);
+    const opt=document.createElement('option');
+    opt.value=sec.id;opt.textContent=`${sec.icon} ${sec.title} (${done}/${total})`;
+    mob.appendChild(opt);
+  });
+}
+
+let currentSec=SECTIONS[0].id;
+
+function switchSec(sid){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  const sec=document.getElementById('section-'+sid);
+  if(sec) sec.classList.add('active');
+  const nb=document.querySelector(`.sb-item[data-sid="${sid}"]`);
+  if(nb) nb.classList.add('active');
+  const msel=document.getElementById('mob-sel');
+  if(msel) msel.value=sid;
+  currentSec=sid;
+  document.getElementById('va-main').scrollTop=0;
+}
+
+function buildMainContent(){
+  const main=document.getElementById('va-main');
+  main.innerHTML='';
+  SECTIONS.forEach(sec=>{
+    const {total,done}=countSec(sec.id);
+    const pct=total?Math.round(done/total*100):0;
+    const div=document.createElement('div');
+    div.className='section';div.id='section-'+sec.id;
+    let html=`<div class="sec-header">
+      <div class="sec-header-top">
+        <div class="sec-title">${sec.icon} ${sec.title}</div>
+        <span class="tag tag-blue" style="margin-top:4px">${SECTIONS.indexOf(sec)+1}/${SECTIONS.length}</span>
+      </div>
+      <div class="sec-desc">${sec.desc}</div>
+      <div class="sec-prog-row">
+        <div class="sec-prog-bar"><div class="sec-prog-fill${pct===100?' done':''}" id="spf-${sec.id}" style="width:${pct}%"></div></div>
+        <span class="sec-pct" id="spp-${sec.id}">${pct}%</span>
+        <span class="sec-count" id="spc-${sec.id}">${done}/${total}</span>
+      </div>
+    </div>`;
+
+    sec.groups.forEach(g=>{
+      let gt=0,gd=0;
+      g.items.forEach((_,i)=>{ gt++; if(state.checked[iid(g.id,i)]) gd++; });
+      html+=`<div class="subsec" id="sub-${g.id}">
+        <div class="subsec-head" onclick="toggleSub('${g.id}')">
+          <div class="subsec-title"><span class="subsec-icon">${g.icon}</span>${g.title}</div>
+          <div class="subsec-right">
+            <span class="subsec-stats" id="gs-${g.id}">${gd}/${gt}</span>
+            <span class="chevron" id="chev-${g.id}">▼</span>
+          </div>
+        </div>
+        <div class="subsec-body">
+          <div class="checklist">`;
+      g.items.forEach((item,idx)=>{
+        const id=iid(g.id,idx);
+        const label=ilabel(item);
+        const cmd=icmd(item);
+        const checked=state.checked[id]?'checked':'';
+        html+=`<div class="ci${state.checked[id]?' done':''}" id="ci-${id}" onclick="toggleCheck('${id}','${sec.id}','${g.id}',event)">
+          <input type="checkbox" id="cb-${id}" ${checked} onchange="toggleCheck('${id}','${sec.id}','${g.id}',event)" onclick="event.stopPropagation()">
+          <label for="cb-${id}" onclick="event.preventDefault()">${esc(label)}${cmd?`<span class="cmd">${esc(cmd)}</span>`:''}</label>
+        </div>`;
+      });
+      html+=`</div>
+          <div class="notes-wrap">
+            <div class="notes-label">Findings / Notes</div>
+            <textarea placeholder="Record findings, IOCs, observations, commands run..." id="note-${g.id}" onchange="saveNote('${g.id}')">${esc(state.notes[g.id]||'')}</textarea>
+          </div>
+        </div>
+      </div>`;
+    });
+
+    // Extra report fields at bottom of report section
+    if(sec.id==='report') html+=buildReportExtra();
+
+    div.innerHTML=html;
+    main.appendChild(div);
+  });
+}
+
+function buildReportExtra(){
+  const fields=[
+    {id:'client',label:'Client / Organization Name',type:'input'},
+    {id:'assessor',label:'Assessor Name',type:'input'},
+    {id:'start_date',label:'Assessment Start Date',type:'input'},
+    {id:'end_date',label:'Assessment End Date',type:'input'},
+    {id:'root_cause',label:'Root Cause of Compromise',type:'textarea'},
+    {id:'confirmed_comp',label:'Confirmed Compromised Systems (one per line)',type:'textarea'},
+    {id:'confirmed_clean',label:'Confirmed Clean Systems (one per line)',type:'textarea'},
+    {id:'key_findings',label:'Key Findings Summary',type:'textarea'},
+    {id:'immediate_actions',label:'Immediate Actions Required',type:'textarea'},
+    {id:'recommendations',label:'Long-term Recommendations',type:'textarea'},
+    {id:'exec_summary',label:'Executive Summary',type:'textarea'},
+  ];
+  const rf=state.reportFields||{};
+  let html=`<div class="subsec" style="margin-top:10px">
+    <div class="subsec-head" onclick="toggleSub('rep-extra')">
+      <div class="subsec-title"><span class="subsec-icon">📋</span>Report Fields</div>
+      <span class="chevron" id="chev-rep-extra">▼</span>
+    </div>
+    <div class="subsec-body" style="padding:16px;display:flex;flex-direction:column;gap:12px">`;
+  fields.forEach(f=>{
+    html+=`<div class="rf"><label>${f.label}</label>`;
+    if(f.type==='input') html+=`<input type="text" value="${esc(rf[f.id]||'')}" oninput="saveField('${f.id}',this.value)" placeholder="${f.label}">`;
+    else html+=`<textarea rows="3" oninput="saveField('${f.id}',this.value)" placeholder="${f.label}">${esc(rf[f.id]||'')}</textarea>`;
+    html+=`</div>`;
+  });
+  html+=`</div></div>`;
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════
+// INTERACTIONS
+// ═══════════════════════════════════════════════════════
+function toggleCheck(id,sid,gid,event){
+  if(event&&event.type==='click'){
+    // if click on the div (not the checkbox), toggle checkbox manually
+    const cb=document.getElementById('cb-'+id);
+    if(event.target!==cb) cb.checked=!cb.checked;
+  }
+  const cb=document.getElementById('cb-'+id);
+  state.checked[id]=cb.checked;
+  const ci=document.getElementById('ci-'+id);
+  if(ci) ci.classList.toggle('done',cb.checked);
+  saveState();
+  updateStats(sid,gid);
+}
+
+function toggleSub(gid){
+  const s=document.getElementById('sub-'+gid);
+  const c=document.getElementById('chev-'+gid);
+  if(!s) return;
+  s.classList.toggle('collapsed');
+  if(c) c.style.transform=s.classList.contains('collapsed')?'rotate(-90deg)':'';
+}
+
+function saveNote(gid){
+  const ta=document.getElementById('note-'+gid);
+  if(ta) state.notes[gid]=ta.value;
+  saveState();
+}
+
+function saveField(key,val){
+  if(!state.reportFields) state.reportFields={};
+  state.reportFields[key]=val;
+  saveState();
+}
+
+function updateStats(sid,gid){
+  const {total,done}=countSec(sid);
+  const pct=total?Math.round(done/total*100):0;
+  ['spf','spp','spc'].forEach(p=>{
+    const el=document.getElementById(p+'-'+sid);
+    if(!el) return;
+    if(p==='spf'){ el.style.width=pct+'%'; el.classList.toggle('done',pct===100); }
+    else if(p==='spp') el.textContent=pct+'%';
+    else el.textContent=done+'/'+total;
+  });
+  const sec=SECTIONS.find(s=>s.id===sid);
+  const grp=sec&&sec.groups.find(g=>g.id===gid);
+  if(grp){
+    let gt=0,gd=0;
+    grp.items.forEach((_,i)=>{ gt++; if(state.checked[iid(gid,i)]) gd++; });
+    const gs=document.getElementById('gs-'+gid);
+    if(gs) gs.textContent=gd+'/'+gt;
+  }
+  const sbb=document.getElementById('sbb-'+sid);
+  if(sbb) sbb.textContent=done+'/'+total;
+  const mob=document.getElementById('mob-sel');
+  if(mob){ const o=mob.querySelector(`option[value="${sid}"]`); if(o) o.textContent=`${SECTIONS.find(s=>s.id===sid).icon} ${SECTIONS.find(s=>s.id===sid).title} (${done}/${total})`; }
+  updateOverall();
+}
+
+function updateAllStats(){
+  SECTIONS.forEach(sec=>{
+    sec.groups.forEach(g=>{
+      let gt=0,gd=0;
+      g.items.forEach((_,i)=>{ gt++; if(state.checked[iid(g.id,i)]) gd++; });
+      const gs=document.getElementById('gs-'+g.id);
+      if(gs) gs.textContent=gd+'/'+gt;
+    });
+    const {total,done}=countSec(sec.id);
+    const pct=total?Math.round(done/total*100):0;
+    const spf=document.getElementById('spf-'+sec.id);
+    const spp=document.getElementById('spp-'+sec.id);
+    const spc=document.getElementById('spc-'+sec.id);
+    const sbb=document.getElementById('sbb-'+sec.id);
+    if(spf){ spf.style.width=pct+'%'; spf.classList.toggle('done',pct===100); }
+    if(spp) spp.textContent=pct+'%';
+    if(spc) spc.textContent=done+'/'+total;
+    if(sbb) sbb.textContent=done+'/'+total;
+  });
+  updateOverall();
+}
+
+function updateOverall(){
+  const {total,done}=countAll();
+  const pct=total?Math.round(done/total*100):0;
+  const f=document.getElementById('ov-fill');
+  const p=document.getElementById('ov-pct');
+  const c=document.getElementById('sb-count');
+  if(f){ f.style.width=pct+'%'; f.classList.toggle('complete',pct===100); }
+  if(p) p.textContent=pct+'%';
+  if(c) c.textContent=done+' of '+total+' items completed';
+}
+
+function refreshCheckboxes(){
+  SECTIONS.forEach(sec=>sec.groups.forEach(g=>{
+    g.items.forEach((_,idx)=>{
+      const id=iid(g.id,idx);
+      const cb=document.getElementById('cb-'+id);
+      const ci=document.getElementById('ci-'+id);
+      if(cb) cb.checked=!!state.checked[id];
+      if(ci) ci.classList.toggle('done',!!state.checked[id]);
+    });
+    const ta=document.getElementById('note-'+g.id);
+    if(ta&&document.activeElement!==ta) ta.value=state.notes[g.id]||'';
+  }));
+  const rf=state.reportFields||{};
+  Object.keys(rf).forEach(k=>{
+    const el=document.querySelector(`[oninput*="saveField('${k}'"]`);
+    if(el&&document.activeElement!==el) el.value=rf[k]||'';
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// EXPORT / IMPORT / RESET
+// ═══════════════════════════════════════════════════════
+function exportState(){
+  openGenericModal(
+    'Export State',
+    'Copy this JSON and import it on another device to sync manually.',
+    JSON.stringify(state,null,2),
+    'Copy to Clipboard',
+    ()=>{ navigator.clipboard.writeText(JSON.stringify(state)).then(()=>toast('Copied!','ok')).catch(()=>toast('Select and copy manually','err')); }
+  );
+}
+
+function importState(){
+  openGenericModal(
+    'Import State',
+    'Paste state JSON exported from another device.',
+    '',
+    'Import',
+    ()=>{
+      try{
+        const parsed=JSON.parse(document.getElementById('mg-text').value.trim());
+        state=parsed;
+        saveState();
+        closeModal('modal-generic');
+        refreshCheckboxes();
+        updateAllStats();
+        buildSbNav();
+        toast('State imported','ok');
+      }catch(e){ toast('Invalid JSON','err'); }
+    }
+  );
+}
+
+function confirmReset(){
+  openGenericModal(
+    'Reset All Progress',
+    'This clears ALL checked items, notes, and report fields for this engagement. Cannot be undone.',
+    '',
+    'Reset Everything',
+    ()=>{
+      state={checked:{},notes:{},reportFields:{}};
+      saveState();
+      closeModal('modal-generic');
+      buildMainContent();
+      buildSbNav();
+      updateAllStats();
+      switchSec(currentSec);
+      toast('Progress reset','ok');
+    }
+  );
+  document.getElementById('mg-text').style.display='none';
+}
+
+// ═══════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+let _genericAction=null;
+function openGenericModal(title,desc,text,btnLabel,action){
+  document.getElementById('mg-title').textContent=title;
+  document.getElementById('mg-desc').textContent=desc;
+  document.getElementById('mg-text').value=text;
+  document.getElementById('mg-text').style.display='';
+  document.getElementById('mg-btn').textContent=btnLabel;
+  _genericAction=action;
+  openModal('modal-generic');
+}
+document.getElementById('mg-btn').onclick=()=>{ if(_genericAction) _genericAction(); };
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }));
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(o=>o.classList.remove('open'));
+  if(e.key==='Enter'&&document.getElementById('modal-create').classList.contains('open')){
+    e.preventDefault(); createOrg();
+  }
+});
+
+// ═══════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+type;
+  clearTimeout(t._tid);
+  t._tid=setTimeout(()=>t.className='',2800);
+}
+
+// ═══════════════════════════════════════════════════════
+// VIEW SWITCHER
+// ═══════════════════════════════════════════════════════
+function showView(name){
+  document.getElementById('view-list').style.display=name==='list'?'block':'none';
+  const va=document.getElementById('view-assessment');
+  va.style.display=name==='assessment'?'flex':'none';
+  document.getElementById('mob-bar').style.display=name==='assessment'?'block':'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// UTIL
+// ═══════════════════════════════════════════════════════
+function hex12(){
+  return ([1e12]+Math.random()).replace('.','').slice(2,14);
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.getElementById('cb-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).toUpperCase();
+document.getElementById('mob-bar').style.display='none';
+
+loadOrgList();
+</script>
+</body>
+</html>
