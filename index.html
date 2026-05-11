@@ -222,6 +222,40 @@ body{
 }
 #va-main{flex:1;overflow-y:auto;padding:24px;max-width:960px}
 
+/* ASSESSMENT RIGHT PANEL */
+#va-right{
+  width:260px;min-width:260px;
+  background:var(--bg);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+  padding:14px;
+  gap:10px;
+}
+.vr-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:3px;padding:14px;
+}
+.vr-card-title{
+  font-size:9px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);font-family:var(--mono);margin-bottom:10px;
+}
+/* donut in right panel */
+#va-donut-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0}
+#va-donut-pct{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--text)}
+#va-donut-sub{font-size:9px;color:var(--muted);font-family:var(--mono)}
+/* section bars in right panel */
+.vr-sec-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.vr-sec-icon{font-size:11px;flex-shrink:0;width:16px;text-align:center}
+.vr-sec-info{flex:1;min-width:0}
+.vr-sec-label{font-size:9px;color:var(--dim);font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.vr-sec-bar{height:3px;background:var(--s3);border-radius:1px;overflow:hidden}
+.vr-sec-fill{height:100%;border-radius:1px;transition:width .3s}
+.vr-sec-pct{font-size:9px;font-family:var(--mono);color:var(--muted);min-width:28px;text-align:right;flex-shrink:0}
+/* quick actions */
+.vr-actions{display:flex;flex-direction:column;gap:6px}
+@media(max-width:1100px){#va-right{display:none}}
+
 /* SIDEBAR */
 .sb-section{padding:12px 0}
 .sb-section-label{
@@ -412,7 +446,7 @@ body{
   #va-main{padding:12px}
 }
 @media print{
-  #classbar,#header,#va-sidebar,#mob-bar,#toast,.overlay,#sb-actions{display:none!important}
+  #classbar,#header,#va-sidebar,#mob-bar,#toast,.overlay,#sb-actions,#va-right{display:none!important}
   #view-assessment{display:block!important;height:auto}
   #va-main{padding:0}
   .section{display:block!important}
@@ -535,6 +569,41 @@ body{
 
   <!-- MAIN CONTENT -->
   <div id="va-main"></div>
+
+  <!-- RIGHT STATS PANEL -->
+  <div id="va-right">
+    <!-- Donut -->
+    <div class="vr-card">
+      <div class="vr-card-title">Completion</div>
+      <div id="va-donut-wrap">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="var(--s3)" stroke-width="10"/>
+          <circle id="va-arc" cx="50" cy="50" r="40" fill="none" stroke="var(--accent)" stroke-width="10"
+            stroke-linecap="butt" stroke-dasharray="0 251.3"
+            transform="rotate(-90 50 50)" style="transition:stroke-dasharray .4s,stroke .3s"/>
+        </svg>
+        <div id="va-donut-pct">0%</div>
+        <div id="va-donut-sub">0 / 0 items</div>
+      </div>
+    </div>
+
+    <!-- Section bars -->
+    <div class="vr-card">
+      <div class="vr-card-title">Sections</div>
+      <div id="va-sec-bars"></div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="vr-card">
+      <div class="vr-card-title">Actions</div>
+      <div class="vr-actions">
+        <button class="btn btn-sm" onclick="exportState()">Export State</button>
+        <button class="btn btn-sm" onclick="importState()">Import State</button>
+        <button class="btn btn-sm" onclick="window.print()">Print / PDF</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmReset()">Reset</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════ MODALS ═══ -->
@@ -1682,6 +1751,36 @@ function updateOverall(){
   if(f){ f.style.width=pct+'%'; f.classList.toggle('complete',pct===100); }
   if(p) p.textContent=pct+'%';
   if(c) c.textContent=done+' of '+total+' items completed';
+  updateAssessmentPanel(total,done,pct);
+}
+
+function updateAssessmentPanel(total,done,pct){
+  const arc=document.getElementById('va-arc');
+  const dpct=document.getElementById('va-donut-pct');
+  const dsub=document.getElementById('va-donut-sub');
+  const barsEl=document.getElementById('va-sec-bars');
+  if(!arc) return;
+  const circ=251.3;
+  const fill=pct/100*circ;
+  const color=pct===100?'var(--green)':pct>=60?'var(--accent)':pct>=25?'var(--yellow)':'var(--red)';
+  arc.setAttribute('stroke-dasharray',`${fill} ${circ}`);
+  arc.style.stroke=color;
+  dpct.textContent=pct+'%';
+  dpct.style.color=color;
+  dsub.textContent=done+' / '+total+' items';
+  if(!barsEl) return;
+  barsEl.innerHTML=SECTIONS.map(s=>{
+    const {total:st,done:sd}=countSec(s.id);
+    const sp=st?Math.round(sd/st*100):0;
+    return `<div class="vr-sec-row">
+      <span class="vr-sec-icon">${s.icon}</span>
+      <div class="vr-sec-info">
+        <div class="vr-sec-label">${s.title}</div>
+        <div class="vr-sec-bar"><div class="vr-sec-fill" style="width:${sp}%;background:${s.color}"></div></div>
+      </div>
+      <span class="vr-sec-pct">${sp}%</span>
+    </div>`;
+  }).join('');
 }
 
 function refreshCheckboxes(){
